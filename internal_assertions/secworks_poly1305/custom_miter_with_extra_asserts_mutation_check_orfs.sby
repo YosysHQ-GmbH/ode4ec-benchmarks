@@ -1,0 +1,50 @@
+[tasks]
+task_btor
+task_bitwuzla
+
+[options]
+task_btor: mode bmc
+task_btor: depth 100
+
+task_bitwuzla: mode bmc
+task_bitwuzla: depth 100
+
+[engines]
+task_btor: btor btormc
+task_bitwuzla: smtbmc bitwuzla
+
+[script]
+# Gold
+read_rtlil gold_out.il
+
+# Gate (mutated: see mutate.tcl)
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil gate_out_mutated.il
+chformal -assert -remove
+
+# Miter
+script expose_orfs.ys
+plugin -i slang
+read_slang --top miter -D INTERNAL_ASSERTS miter.v
+
+hierarchy -top miter
+flatten
+opt
+fminit -seq reset_n 0,0,1 -posedge clk
+
+async2sync
+clk2fflogic
+
+setundef -zero
+setundef -undriven -init -zero
+
+[files]
+../sky130
+../miter.v
+internal_helper_asserts.vh ../internal_asserts/asserts_orfs.vh
+internal_helper_decls.vh ../internal_asserts/decls_orfs.vh
+../internal_asserts/expose_orfs.ys
+internal_helper_ports_a.vh ../internal_asserts/ports_a_orfs.vh
+internal_helper_ports_b.vh ../internal_asserts/ports_b_orfs.vh
+gold_out.il
+gate_out_mutated.il

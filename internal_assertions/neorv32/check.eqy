@@ -1,0 +1,31 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i ghdl
+ghdl --std=08 --work=neorv32 ../src/core/neorv32_bootrom.vhd ../src/core/neorv32_bootrom_image.vhd ../src/core/neorv32_bootrom_rom.vhd ../src/core/neorv32_bus.vhd ../src/core/neorv32_cache.vhd ../src/core/neorv32_cache_ram.vhd ../src/core/neorv32_cfs.vhd ../src/core/neorv32_clint.vhd ../src/core/neorv32_cpu.vhd ../src/core/neorv32_cpu_alu.vhd ../src/core/neorv32_cpu_alu_bitmanip.vhd ../src/core/neorv32_cpu_alu_cfu.vhd ../src/core/neorv32_cpu_alu_cond.vhd ../src/core/neorv32_cpu_alu_crypto.vhd ../src/core/neorv32_cpu_alu_fpu.vhd ../src/core/neorv32_cpu_alu_muldiv.vhd ../src/core/neorv32_cpu_alu_shifter.vhd ../src/core/neorv32_cpu_control.vhd ../src/core/neorv32_cpu_counters.vhd ../src/core/neorv32_cpu_decompressor.vhd ../src/core/neorv32_cpu_frontend.vhd ../src/core/neorv32_cpu_hwtrig.vhd ../src/core/neorv32_cpu_lsu.vhd ../src/core/neorv32_cpu_pmp.vhd ../src/core/neorv32_cpu_regfile.vhd ../src/core/neorv32_cpu_trace.vhd ../src/core/neorv32_debug_auth.vhd ../src/core/neorv32_debug_dm.vhd ../src/core/neorv32_debug_dtm.vhd ../src/core/neorv32_dma.vhd ../src/core/neorv32_dmem.vhd ../src/core/neorv32_dmem_ram.vhd ../src/core/neorv32_gpio.vhd ../src/core/neorv32_gptmr.vhd ../src/core/neorv32_imem.vhd ../src/core/neorv32_imem_image.vhd ../src/core/neorv32_imem_ram.vhd ../src/core/neorv32_imem_rom.vhd ../src/core/neorv32_neoled.vhd ../src/core/neorv32_onewire.vhd ../src/core/neorv32_package.vhd ../src/core/neorv32_prim.vhd ../src/core/neorv32_pwm.vhd ../src/core/neorv32_sdi.vhd ../src/core/neorv32_slink.vhd ../src/core/neorv32_spi.vhd ../src/core/neorv32_sys.vhd ../src/core/neorv32_sysinfo.vhd ../src/core/neorv32_top.vhd ../src/core/neorv32_tracer.vhd ../src/core/neorv32_trng.vhd ../src/core/neorv32_twd.vhd ../src/core/neorv32_twi.vhd ../src/core/neorv32_uart.vhd ../src/core/neorv32_wdt.vhd ../src/core/neorv32_xbus.vhd -e neorv32_cpu 
+hierarchy -check -top neorv32_cpu
+memory_map -formal
+async2sync
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top neorv32_cpu
+
+[script]
+select -module neorv32_cpu 
+fminit -seq rstn_i 0,0,1
+fminit -set clk_i 0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+#engine aiger suprove
+#engine abc pdr
+engine smtbmc bitwuzla
+depth 16

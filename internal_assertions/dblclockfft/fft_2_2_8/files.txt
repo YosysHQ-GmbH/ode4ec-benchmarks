@@ -1,0 +1,8 @@
+src/fftmain.v
+src/bimpy.v
+src/butterfly.v
+src/convround.v
+src/hwbfly.v
+src/laststage.v
+src/longbimpy.v
+src/qtrstage.v

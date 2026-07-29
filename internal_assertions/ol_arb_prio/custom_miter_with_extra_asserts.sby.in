@@ -1,0 +1,63 @@
+[tasks]
+task_abc
+task_aiger
+task_bitwuzla
+task_btor
+
+[options]
+task_bitwuzla: mode bmc
+task_bitwuzla: depth 70
+task_bitwuzla: timeout 1800
+task_btor: mode bmc
+task_btor: depth 70
+task_btor: timeout 1800
+
+task_abc: mode prove
+task_abc: timeout 1800
+task_aiger: mode prove
+task_aiger: timeout 1800
+
+[engines]
+task_btor: btor btormc
+task_bitwuzla: smtbmc bitwuzla
+
+task_abc: abc pdr
+task_aiger: aiger suprove 
+
+
+[script]
+# Gold
+read_rtlil @GOLD@
+chformal -assert -remove
+
+# Gate
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil @GATE@
+chformal -assert -remove
+
+# Miter
+script expose.ys
+plugin -i slang
+read_slang --top miter -D INTERNAL_ASSERTS @MITER@
+
+hierarchy -top miter
+flatten
+opt
+fminit -seq Rst 1,1,0 -posedge Clk
+
+async2sync
+clk2fflogic
+
+setundef -zero
+setundef -undriven -init -zero
+
+[files]
+../sky130
+@MITER@
+internal_helper_asserts.vh @ASSERTS_SRC@
+internal_helper_decls.vh @DECLS_SRC@
+expose.ys @EXPOSE_SRC@
+internal_helper_ports_a.vh @PORTS_A_SRC@
+internal_helper_ports_b.vh @PORTS_B_SRC@
+@GOLD@
+@GATE@

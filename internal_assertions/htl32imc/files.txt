@@ -1,0 +1,9 @@
+../src/rv32pack.vhd 
+../src/biu_ctrl_rtl.vhd 
+../src/syncfifo.vhd 
+../src/biu_struct.vhd 
+../src/rv32dec.vhd 
+../src/rv32sdiv.vhd 
+../src/rv32proc.vhd 
+../src/rv32reg.vhd 
+../src/htl32rv.vhd

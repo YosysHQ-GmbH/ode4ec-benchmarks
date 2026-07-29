@@ -1,0 +1,28 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i slang
+read_slang -keep-hierarchy ../src/fftmain.v ../src/bimpy.v ../src/butterfly.v ../src/hwbfly.v ../src/longbimpy.v ../src/qtrstage.v ../src/convround.v ../src/laststage.v
+hierarchy -check -top fftmain
+memory_map -formal
+async2sync
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top fftmain
+
+[script]
+select -module fftmain
+fminit -seq i_reset 1,1,0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+engine btor btormc
+depth 12

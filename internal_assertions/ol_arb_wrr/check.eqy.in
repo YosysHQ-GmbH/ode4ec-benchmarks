@@ -1,0 +1,29 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i ghdl
+ghdl --std=08 -frelaxed -gGrantWidth_g=@GRANT@ -gWeightWidth_g=@WIDTH@ -gLatency_g=@LATENCY@ ../src/olo_base_pkg_array.vhd ../src/olo_base_pkg_attribute.vhd ../src/olo_base_pkg_math.vhd ../src/olo_base_pkg_logic.vhd ../src/olo_base_pkg_string.vhd ../src/olo_base_cc_reset.vhd ../src/olo_base_cc_bits.vhd ../src/olo_base_ram_sdp.vhd ../src/olo_base_arb_prio.vhd ../src/olo_base_arb_rr.vhd ../src/olo_base_arb_wrr.vhd -e olo_base_arb_wrr
+hierarchy -check -top olo_base_arb_wrr 
+memory_map -formal
+async2sync
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+plugin -i slang
+read_slang --top olo_base_arb_wrr ./@NETLIST@
+
+[script]
+select -module olo_base_arb_wrr 
+fminit -seq Rst 1,1,0
+fminit -seq Clk 0,'z
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+engine smtbmc bitwuzla
+depth 12

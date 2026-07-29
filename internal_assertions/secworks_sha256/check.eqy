@@ -1,0 +1,29 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i slang
+read_slang -keep-hierarchy ../src/sha256.v ../src/sha256_core.v ../src/sha256_w_mem.v ../src/sha256_k_constants.v
+
+hierarchy -check -top sha256
+memory_map -formal
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top sha256
+
+[script]
+select -module sha256
+fminit -seq reset_n 0,0,1
+fminit -set clk 0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+engine smtbmc bitwuzla
+depth 8

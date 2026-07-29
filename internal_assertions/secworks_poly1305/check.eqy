@@ -1,0 +1,29 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i slang
+read_slang -keep-hierarchy ../src/poly1305.v ../src/poly1305_core.v ../src/poly1305_final.v ../src/poly1305_mulacc.v ../src/poly1305_pblock.v
+
+hierarchy -check -top poly1305
+memory_map -formal
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top poly1305
+
+[script]
+select -module poly1305
+fminit -seq reset_n 0,0,1
+fminit -set clk 0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+engine smtbmc bitwuzla
+depth 8

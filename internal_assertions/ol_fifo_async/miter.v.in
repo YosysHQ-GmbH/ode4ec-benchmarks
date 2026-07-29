@@ -1,0 +1,127 @@
+module miter (
+    input In_Clk,
+    input In_Rst,
+    input Out_Clk,
+    input Out_Rst,
+    input [@WIDTH@-1:0] In_Data,
+    input In_Valid,
+    input Out_Ready
+);
+
+    wire gold_In_RstOut, gate_In_RstOut;
+    wire gold_In_Ready, gate_In_Ready;
+    wire gold_In_Full, gate_In_Full;
+    wire gold_In_Empty, gate_In_Empty;
+    wire [$clog2(@DEPTH@+1)-1:0] gold_In_Level, gate_In_Level;
+
+    wire gold_Out_RstOut, gate_Out_RstOut;
+    wire [@WIDTH@-1:0] gold_Out_Data, gate_Out_Data;
+    wire gold_Out_Valid, gate_Out_Valid;
+    wire gold_Out_Full, gate_Out_Full;
+    wire gold_Out_Empty, gate_Out_Empty;
+    wire [$clog2(@DEPTH@+1)-1:0] gold_Out_Level, gate_Out_Level;
+
+    localparam SETTLE_CYCLES = 8;
+
+    reg [7:0] in_settle_cnt = 0;
+    reg in_checks_ok = 0;
+    always @(posedge In_Clk) begin
+        if (In_Rst) begin
+            in_settle_cnt <= 0;
+            in_checks_ok  <= 0;
+        end else if (in_settle_cnt < SETTLE_CYCLES) begin
+            in_settle_cnt <= in_settle_cnt + 1;
+        end else begin
+            in_checks_ok <= 1;
+        end
+    end
+
+    reg [7:0] out_settle_cnt = 0;
+    reg out_checks_ok = 0;
+    always @(posedge Out_Clk) begin
+        if (Out_Rst) begin
+            out_settle_cnt <= 0;
+            out_checks_ok  <= 0;
+        end else if (out_settle_cnt < SETTLE_CYCLES) begin
+            out_settle_cnt <= out_settle_cnt + 1;
+        end else begin
+            out_checks_ok <= 1;
+        end
+    end
+
+`ifdef INTERNAL_ASSERTS
+    `include "internal_helper_decls.vh"
+`endif
+
+    gold_top i_gold (
+        .In_Clk(In_Clk),
+        .In_Rst(In_Rst),
+        .In_RstOut(gold_In_RstOut),
+        .In_Data(In_Data),
+        .In_Valid(In_Valid),
+        .In_Ready(gold_In_Ready),
+        .In_Full(gold_In_Full),
+        .In_Empty(gold_In_Empty),
+        .In_AlmFull(),
+        .In_AlmEmpty(),
+        .In_Level(gold_In_Level),
+        .Out_Clk(Out_Clk),
+        .Out_Rst(Out_Rst),
+        .Out_RstOut(gold_Out_RstOut),
+        .Out_Data(gold_Out_Data),
+        .Out_Valid(gold_Out_Valid),
+        .Out_Ready(Out_Ready),
+        .Out_Full(gold_Out_Full),
+        .Out_Empty(gold_Out_Empty),
+        .Out_AlmFull(),
+        .Out_AlmEmpty(),
+        .Out_Level(gold_Out_Level)
+`ifdef INTERNAL_ASSERTS
+        `include "internal_helper_ports_a.vh"
+`endif
+    );
+
+    gate_top i_gate (
+        .In_Clk(In_Clk),
+        .In_Rst(In_Rst),
+        .In_RstOut(gate_In_RstOut),
+        .In_Data(In_Data),
+        .In_Valid(In_Valid),
+        .In_Ready(gate_In_Ready),
+        .In_Full(gate_In_Full),
+        .In_Empty(gate_In_Empty),
+        .In_AlmFull(),
+        .In_AlmEmpty(),
+        .In_Level(gate_In_Level),
+        .Out_Clk(Out_Clk),
+        .Out_Rst(Out_Rst),
+        .Out_RstOut(gate_Out_RstOut),
+        .Out_Data(gate_Out_Data),
+        .Out_Valid(gate_Out_Valid),
+        .Out_Ready(Out_Ready),
+        .Out_Full(gate_Out_Full),
+        .Out_Empty(gate_Out_Empty),
+        .Out_AlmFull(),
+        .Out_AlmEmpty(),
+        .Out_Level(gate_Out_Level)
+`ifdef INTERNAL_ASSERTS
+        `include "internal_helper_ports_b.vh"
+`endif
+    );
+
+    always @(posedge In_Clk) begin
+        if (in_checks_ok && out_checks_ok) begin
+            assert(gold_In_Ready == gate_In_Ready);
+        end
+    end
+
+    always @(posedge Out_Clk) begin
+        if (in_checks_ok && out_checks_ok) begin
+            if (gold_Out_Valid) assert(gold_Out_Data == gate_Out_Data);
+            assert(gold_Out_Valid == gate_Out_Valid);
+`ifdef INTERNAL_ASSERTS
+            `include "internal_helper_asserts.vh"
+`endif
+        end
+    end
+endmodule

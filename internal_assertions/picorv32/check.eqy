@@ -1,0 +1,32 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i slang
+read_slang --top picorv32 ../src/picorv32.v
+
+hierarchy -check -top picorv32
+memory_map -formal
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top picorv32
+
+[script]
+select -module picorv32
+fminit -seq resetn 0,0,1
+fminit -set clk 0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+#engine aiger suprove
+#engine abc pdr
+engine smtbmc bitwuzla
+depth 10
+timeout 60

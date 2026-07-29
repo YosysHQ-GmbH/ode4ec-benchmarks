@@ -1,0 +1,18 @@
+yosys -import
+
+set design           $::env(TOP_MODULE)
+set lib_file         $::env(TIMING_LIB)
+set flist_vcs        $::env(FLIST)
+
+# read design
+plugin -i ghdl
+ghdl --std=08 -frelaxed -gGrantWidth_g=@GRANT@ -gWeightWidth_g=@WIDTH@ -gLatency_g=@LATENCY@ ../src/olo_base_pkg_array.vhd ../src/olo_base_pkg_attribute.vhd ../src/olo_base_pkg_math.vhd ../src/olo_base_pkg_logic.vhd ../src/olo_base_pkg_string.vhd ../src/olo_base_cc_reset.vhd ../src/olo_base_cc_bits.vhd ../src/olo_base_ram_sdp.vhd ../src/olo_base_arb_prio.vhd ../src/olo_base_arb_rr.vhd ../src/olo_base_arb_wrr.vhd -e olo_base_arb_wrr
+
+hierarchy -check -top olo_base_arb_wrr
+memory_map -formal
+flatten
+opt_clean -purge
+chformal -assert -remove
+yosys rename olo_base_arb_wrr gold_top
+flatten
+write_rtlil @GOLD@

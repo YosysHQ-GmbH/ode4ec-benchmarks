@@ -1,0 +1,20 @@
+[options]
+splitnets on
+
+[gold]
+read_rtlil @GOLD@
+rename gold_top xorgrid
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./@GATE@
+rename gate_top xorgrid
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+engine smtbmc bitwuzla
+depth 10
+timeout 600

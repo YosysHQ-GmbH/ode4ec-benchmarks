@@ -1,0 +1,31 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i ghdl
+ghdl --std=08 --work=riscv ../src/rv32pack.vhd ../src/biu_ctrl_rtl.vhd ../src/syncfifo.vhd ../src/biu_struct.vhd ../src/rv32dec.vhd ../src/rv32sdiv.vhd ../src/rv32proc.vhd ../src/rv32reg.vhd ../src/htl32rv.vhd -e htl32rv
+hierarchy -check -top htl32rv 
+memory_map -formal
+async2sync
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top htl32rv
+
+[script]
+select -module htl32rv 
+fminit -seq sreset 1,1,0
+fminit -set clk 0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+#engine aiger suprove
+#engine abc pdr
+engine smtbmc bitwuzla
+depth 16

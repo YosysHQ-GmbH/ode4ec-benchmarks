@@ -1,0 +1,3 @@
+src/chacha.v
+src/chacha_core.v
+src/chacha_qr.v

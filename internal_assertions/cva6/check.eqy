@@ -1,0 +1,20 @@
+[options]
+splitnets on
+
+[gold]
+read_rtlil gold_out.il
+rename gold_top serv_top
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top serv_top
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+engine smtbmc bitwuzla
+depth 10
+timeout 60

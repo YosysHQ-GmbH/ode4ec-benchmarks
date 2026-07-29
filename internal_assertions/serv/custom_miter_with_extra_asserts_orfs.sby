@@ -1,0 +1,60 @@
+[tasks]
+task_abc
+task_aiger
+task_bitwuzla
+task_btor
+
+[options]
+task_bitwuzla: mode bmc
+task_bitwuzla: depth 70
+task_bitwuzla: timeout 1800
+task_btor: mode bmc
+task_btor: depth 70
+task_btor: timeout 1800
+
+task_abc: mode prove
+task_abc: timeout 1800
+task_aiger: mode prove
+task_aiger: timeout 1800
+
+[engines]
+task_btor: btor btormc
+task_bitwuzla: smtbmc bitwuzla
+
+task_abc: abc pdr
+task_aiger: aiger suprove 
+
+[script]
+# Gold
+read_rtlil gold_out.il
+
+# Gate
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil gate_out.il
+
+# Miter
+script expose_orfs.ys
+plugin -i slang
+read_slang --top miter miter.v -D INTERNAL_ASSERTS
+# read_slang --top miter miter.v
+hierarchy -top miter
+flatten
+
+prep -top miter
+
+setundef -zero
+setundef -undriven -init -zero
+
+async2sync
+clk2fflogic
+
+[files]
+../sky130
+../miter.v
+asserts.vh ../internal_asserts/asserts_orfs.vh
+decls.vh ../internal_asserts/decls_orfs.vh
+../internal_asserts/expose_orfs.ys
+ports_a.vh ../internal_asserts/ports_a_orfs.vh
+ports_b.vh ../internal_asserts/ports_b_orfs.vh
+gold_out.il
+gate_out.il

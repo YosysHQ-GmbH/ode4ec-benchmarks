@@ -1,0 +1,64 @@
+module miter (
+    input Clk,
+    input Rst,
+    input [@IN@-1:0] In_Data,
+    input In_Valid,
+    input In_Last,
+    input Out_Ready
+);
+
+    wire gold_In_Ready, gate_In_Ready;
+    wire gold_Out_Valid, gate_Out_Valid;
+    wire [@OUT@-1:0] gold_Out_Data, gate_Out_Data;
+    wire gold_Out_Last, gate_Out_Last;
+    wire [@OUT@/@IN@-1:0] gold_Out_WordEna, gate_Out_WordEna;
+
+`ifdef INTERNAL_ASSERTS
+    `include "internal_helper_decls.vh"
+`endif
+
+    gold_top i_gold (
+        .Clk(Clk),
+        .Rst(Rst),
+        .In_Valid(In_Valid),
+        .In_Ready(gold_In_Ready),
+        .In_Data(In_Data),
+        .In_Last(In_Last),
+        .Out_Valid(gold_Out_Valid),
+        .Out_Ready(Out_Ready),
+        .Out_Data(gold_Out_Data),
+        .Out_Last(gold_Out_Last),
+        .Out_WordEna(gold_Out_WordEna)
+`ifdef INTERNAL_ASSERTS
+        `include "internal_helper_ports_a.vh"
+`endif
+    );
+
+    gate_top i_gate (
+        .Clk(Clk),
+        .Rst(Rst),
+        .In_Valid(In_Valid),
+        .In_Ready(gate_In_Ready),
+        .In_Data(In_Data),
+        .In_Last(In_Last),
+        .Out_Valid(gate_Out_Valid),
+        .Out_Ready(Out_Ready),
+        .Out_Data(gate_Out_Data),
+        .Out_Last(gate_Out_Last),
+        .Out_WordEna(gate_Out_WordEna)
+`ifdef INTERNAL_ASSERTS
+        `include "internal_helper_ports_b.vh"
+`endif
+    );
+
+    always @(posedge Clk) begin
+        assert(gold_In_Ready == gate_In_Ready);
+        assert(gold_Out_Valid == gate_Out_Valid);
+        assert(gold_Out_Data == gate_Out_Data);
+        assert(gold_Out_Last == gate_Out_Last);
+        assert(gold_Out_WordEna == gate_Out_WordEna);
+`ifdef INTERNAL_ASSERTS
+        `include "internal_helper_asserts.vh"
+`endif
+    end
+endmodule

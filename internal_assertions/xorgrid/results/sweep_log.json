@@ -1,0 +1,375 @@
+[
+  {
+    "target": "eqy",
+    "flavor": "yosys",
+    "size": 4,
+    "solved": false,
+    "alarm": false,
+    "statuses": {
+      "_": null
+    },
+    "wall_seconds": 42.8,
+    "make_returncode": -9,
+    "make_timed_out": false,
+    "build_error": true,
+    "log_tail": "24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__sdlclkp_1.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__sdlclkp_2.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__sdlclkp_4.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__sedfxbp_1.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__sedfxbp_2.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__sedfxtp_1.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__sedfxtp_2.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__sedfxtp_4.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xnor2_1.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xnor2_2.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xnor2_4.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xnor3_1.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xnor3_2.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xnor3_4.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xor2_1.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xor2_2.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xor2_4.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xor3_1.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xor3_2.\nEQY 11:31:24 [check_S4_yosys_eqy] combine: Warning: Ignoring boxed module sky130_fd_sc_hd__xor3_4.\n",
+    "timestamp": 1785231127.316235
+  },
+  {
+    "target": "sby",
+    "flavor": "yosys",
+    "size": 4,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "PASS",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 9.9,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785231245.0020242
+  },
+  {
+    "target": "sby",
+    "flavor": "yosys",
+    "size": 8,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 610.3,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785231855.2667978
+  },
+  {
+    "target": "sby",
+    "flavor": "yosys",
+    "size": 16,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 633.7,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785232488.9873497
+  },
+  {
+    "target": "sby",
+    "flavor": "yosys",
+    "size": 32,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 805.5,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785233294.4652886
+  },
+  {
+    "target": "sby",
+    "flavor": "yosys",
+    "size": 64,
+    "solved": false,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "TIMEOUT"
+    },
+    "wall_seconds": 1800.2,
+    "make_returncode": null,
+    "make_timed_out": true,
+    "build_error": false,
+    "log_tail": "28 [check_S64_yosys_sby_task_bitwuzla] prep: finished (returncode=0)\nSBY 12:33:28 [check_S64_yosys_sby_task_bitwuzla] smt2: starting process \"cd check_S64_yosys_sby_task_bitwuzla/model; yosys -ql design_smt2.log design_smt2.ys\"\nSBY 12:33:45 [check_S64_yosys_sby_task_bitwuzla] smt2: finished (returncode=0)\nSBY 12:33:45 [check_S64_yosys_sby_task_bitwuzla] engine_0: starting process \"cd check_S64_yosys_sby_task_bitwuzla; yosys-smtbmc -s bitwuzla --presat --unroll --noprogress -t 70  --append 0 --dump-vcd engine_0/trace.vcd --dump-yw engine_0/trace.yw --dump-vlogtb engine_0/trace_tb.v --dump-smtc engine_0/trace.smtc model/design_smt2.smt2\"\nSBY 12:33:45 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:00:00  Solver: bitwuzla\nSBY 12:34:53 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:01:07  Checking assumptions in step 0..\nSBY 12:34:53 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:01:07  Checking assertions in step 0..\nSBY 12:35:14 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:01:28  Checking assumptions in step 1..\nSBY 12:35:14 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:01:28  Checking assertions in step 1..\nSBY 12:35:37 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:01:51  Checking assumptions in step 2..\nSBY 12:35:40 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:01:54  Checking assertions in step 2..\nSBY 12:36:07 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:02:21  Checking assumptions in step 3..\nSBY 12:36:13 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:02:27  Checking assertions in step 3..\nSBY 12:36:50 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:03:04  Checking assumptions in step 4..\nSBY 12:37:02 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:03:16  Checking assertions in step 4..\nSBY 12:37:35 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:03:49  Checking assumptions in step 5..\nSBY 12:37:55 [check_S64_yosys_sby_task_bitwuzla] engine_0: ##   0:04:09  Checking assertions in step 5..\n",
+    "timestamp": 1785235094.6228302
+  },
+  {
+    "target": "sby",
+    "flavor": "yosys",
+    "size": 48,
+    "solved": false,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "TIMEOUT"
+    },
+    "wall_seconds": 1800.1,
+    "make_returncode": null,
+    "make_timed_out": true,
+    "build_error": false,
+    "log_tail": " --dump-yw engine_0/trace.yw --dump-vlogtb engine_0/trace_tb.v --dump-smtc engine_0/trace.smtc model/design_smt2.smt2\"\nSBY 13:01:14 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:00:00  Solver: bitwuzla\nSBY 13:01:40 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:00:26  Checking assumptions in step 0..\nSBY 13:01:40 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:00:26  Checking assertions in step 0..\nSBY 13:01:53 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:00:38  Checking assumptions in step 1..\nSBY 13:01:53 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:00:39  Checking assertions in step 1..\nSBY 13:02:03 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:00:49  Checking assumptions in step 2..\nSBY 13:02:05 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:00:51  Checking assertions in step 2..\nSBY 13:02:21 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:01:06  Checking assumptions in step 3..\nSBY 13:02:24 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:01:09  Checking assertions in step 3..\nSBY 13:02:40 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:01:26  Checking assumptions in step 4..\nSBY 13:02:47 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:01:32  Checking assertions in step 4..\nSBY 13:03:02 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:01:48  Checking assumptions in step 5..\nSBY 13:03:13 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:01:59  Checking assertions in step 5..\nSBY 13:03:40 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:02:25  Checking assumptions in step 6..\nSBY 13:03:56 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:02:42  Checking assertions in step 6..\nSBY 13:04:56 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:03:41  Checking assumptions in step 7..\nSBY 13:05:15 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:04:01  Checking assertions in step 7..\nSBY 13:06:15 [check_S48_yosys_sby_task_bitwuzla] engine_0: ##   0:05:01  waiting for solver (1 minute)\n",
+    "timestamp": 1785236894.7523487
+  },
+  {
+    "target": "sby",
+    "flavor": "yosys",
+    "size": 40,
+    "solved": false,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "TIMEOUT"
+    },
+    "wall_seconds": 1800.0,
+    "make_returncode": null,
+    "make_timed_out": true,
+    "build_error": false,
+    "log_tail": "Y 13:30:39 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:15  Checking assumptions in step 0..\nSBY 13:30:39 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:15  Checking assertions in step 0..\nSBY 13:30:46 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:22  Checking assumptions in step 1..\nSBY 13:30:46 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:22  Checking assertions in step 1..\nSBY 13:30:52 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:28  Checking assumptions in step 2..\nSBY 13:30:53 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:29  Checking assertions in step 2..\nSBY 13:31:00 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:36  Checking assumptions in step 3..\nSBY 13:31:03 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:39  Checking assertions in step 3..\nSBY 13:31:13 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:49  Checking assumptions in step 4..\nSBY 13:31:18 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:00:55  Checking assertions in step 4..\nSBY 13:31:30 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:01:06  Checking assumptions in step 5..\nSBY 13:31:38 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:01:14  Checking assertions in step 5..\nSBY 13:31:55 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:01:31  Checking assumptions in step 6..\nSBY 13:32:06 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:01:42  Checking assertions in step 6..\nSBY 13:32:48 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:02:24  Checking assumptions in step 7..\nSBY 13:33:03 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:02:39  Checking assertions in step 7..\nSBY 13:34:03 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:03:39  waiting for solver (1 minute)\nSBY 13:37:53 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:07:29  Checking assumptions in step 8..\nSBY 13:38:13 [check_S40_yosys_sby_task_bitwuzla] engine_0: ##   0:07:49  Checking assertions in step 8..\n",
+    "timestamp": 1785238694.783743
+  },
+  {
+    "target": "sby",
+    "flavor": "yosys",
+    "size": 36,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 854.6,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785239549.413804
+  },
+  {
+    "target": "miter",
+    "flavor": "yosys",
+    "size": 4,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "PASS",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 19.5,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785239568.8906188
+  },
+  {
+    "target": "miter",
+    "flavor": "yosys",
+    "size": 8,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 606.2,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785240175.0485387
+  },
+  {
+    "target": "miter",
+    "flavor": "yosys",
+    "size": 16,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 627.2,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785240802.2537298
+  },
+  {
+    "target": "miter",
+    "flavor": "yosys",
+    "size": 32,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 828.1,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785241630.3681414
+  },
+  {
+    "target": "miter",
+    "flavor": "yosys",
+    "size": 64,
+    "solved": false,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "TIMEOUT"
+    },
+    "wall_seconds": 1800.2,
+    "make_returncode": null,
+    "make_timed_out": true,
+    "build_error": false,
+    "log_tail": "to '/home/michael/Work/miter-helper-assertion-experiments/sby_helper_assertion_testing/xorgrid/run/check_S64_yosys_custom_miter_task_bitwuzla/src/check_S64_yosys_gate.il'.\nSBY 14:47:13 [check_S64_yosys_custom_miter_task_bitwuzla] engine_0: smtbmc bitwuzla\nSBY 14:47:13 [check_S64_yosys_custom_miter_task_bitwuzla] base: starting process \"cd check_S64_yosys_custom_miter_task_bitwuzla/src; yosys -ql ../model/design.log ../model/design.ys\"\nSBY 14:48:30 [check_S64_yosys_custom_miter_task_bitwuzla] base: Top level design units:\nSBY 14:48:30 [check_S64_yosys_custom_miter_task_bitwuzla] base: miter\nSBY 14:48:30 [check_S64_yosys_custom_miter_task_bitwuzla] base: Build succeeded: 0 errors, 0 warnings\nSBY 14:48:30 [check_S64_yosys_custom_miter_task_bitwuzla] base: finished (returncode=0)\nSBY 14:48:34 [check_S64_yosys_custom_miter_task_bitwuzla] prep: starting process \"cd check_S64_yosys_custom_miter_task_bitwuzla/model; yosys -ql design_prep.log design_prep.ys\"\nSBY 14:50:38 [check_S64_yosys_custom_miter_task_bitwuzla] prep: finished (returncode=0)\nSBY 14:50:38 [check_S64_yosys_custom_miter_task_bitwuzla] smt2: starting process \"cd check_S64_yosys_custom_miter_task_bitwuzla/model; yosys -ql design_smt2.log design_smt2.ys\"\nSBY 14:51:03 [check_S64_yosys_custom_miter_task_bitwuzla] smt2: finished (returncode=0)\nSBY 14:51:03 [check_S64_yosys_custom_miter_task_bitwuzla] engine_0: starting process \"cd check_S64_yosys_custom_miter_task_bitwuzla; yosys-smtbmc -s bitwuzla --presat --unroll --noprogress -t 70  --append 0 --dump-vcd engine_0/trace.vcd --dump-yw engine_0/trace.yw --dump-vlogtb engine_0/trace_tb.v --dump-smtc engine_0/trace.smtc model/design_smt2.smt2\"\nSBY 14:51:03 [check_S64_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:00:00  Solver: bitwuzla\nSBY 14:56:03 [check_S64_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:04:59  Checking assumptions in step 0..\nSBY 14:56:04 [check_S64_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:05:00  Checking assertions in step 0..\n",
+    "timestamp": 1785243430.527929
+  },
+  {
+    "target": "miter",
+    "flavor": "yosys",
+    "size": 48,
+    "solved": false,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "TIMEOUT"
+    },
+    "wall_seconds": 1800.0,
+    "make_returncode": null,
+    "make_timed_out": true,
+    "build_error": false,
+    "log_tail": "] engine_0: ##   0:00:47  Checking assertions in step 1..\nSBY 15:19:52 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:02  Checking assumptions in step 2..\nSBY 15:19:54 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:04  Checking assertions in step 2..\nSBY 15:20:12 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:22  Checking assumptions in step 3..\nSBY 15:20:17 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:26  Checking assertions in step 3..\nSBY 15:20:40 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:49  Checking assumptions in step 4..\nSBY 15:20:45 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:55  Checking assertions in step 4..\nSBY 15:21:05 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:02:14  Checking assumptions in step 5..\nSBY 15:21:14 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:02:24  Checking assertions in step 5..\nSBY 15:21:33 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:02:42  Checking assumptions in step 6..\nSBY 15:21:50 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:03:00  Checking assertions in step 6..\nSBY 15:22:14 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:03:23  Checking assumptions in step 7..\nSBY 15:22:33 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:03:42  Checking assertions in step 7..\nSBY 15:23:33 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:04:43  waiting for solver (1 minute)\nSBY 15:23:47 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:04:57  Checking assumptions in step 8..\nSBY 15:24:16 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:05:25  Checking assertions in step 8..\nSBY 15:25:16 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:06:26  waiting for solver (1 minute)\nSBY 15:26:57 [check_S48_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:08:07  Checking assumptions in step 9..\n",
+    "timestamp": 1785245230.5620933
+  },
+  {
+    "target": "miter",
+    "flavor": "yosys",
+    "size": 40,
+    "solved": false,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "TIMEOUT"
+    },
+    "wall_seconds": 1800.2,
+    "make_returncode": null,
+    "make_timed_out": true,
+    "build_error": false,
+    "log_tail": "wuzla] engine_0: ##   0:00:42  Checking assumptions in step 3..\nSBY 15:49:16 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:00:44  Checking assertions in step 3..\nSBY 15:49:23 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:00:51  Checking assumptions in step 4..\nSBY 15:49:28 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:00:56  Checking assertions in step 4..\nSBY 15:49:35 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:03  Checking assumptions in step 5..\nSBY 15:49:44 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:11  Checking assertions in step 5..\nSBY 15:49:55 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:22  Checking assumptions in step 6..\nSBY 15:50:08 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:35  Checking assertions in step 6..\nSBY 15:50:21 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:49  Checking assumptions in step 7..\nSBY 15:50:37 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:02:05  Checking assertions in step 7..\nSBY 15:51:37 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:03:05  waiting for solver (1 minute)\nSBY 15:51:53 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:03:21  Checking assumptions in step 8..\nSBY 15:52:14 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:03:42  Checking assertions in step 8..\nSBY 15:53:14 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:04:42  waiting for solver (1 minute)\nSBY 15:54:52 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:06:20  Checking assumptions in step 9..\nSBY 15:55:52 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:07:20  waiting for solver (1 minute)\nSBY 15:55:53 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:07:21  Checking assertions in step 9..\nSBY 15:56:54 [check_S40_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:08:21  waiting for solver (1 minute)\n",
+    "timestamp": 1785247030.7391222
+  },
+  {
+    "target": "miter",
+    "flavor": "yosys",
+    "size": 36,
+    "solved": false,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "TIMEOUT"
+    },
+    "wall_seconds": 1800.1,
+    "make_returncode": null,
+    "make_timed_out": true,
+    "build_error": false,
+    "log_tail": "engine_0: ##   0:01:25  Checking assertions in step 1..\nSBY 16:21:22 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:47  Checking assumptions in step 2..\nSBY 16:21:25 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:01:50  Checking assertions in step 2..\nSBY 16:21:55 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:02:19  Checking assumptions in step 3..\nSBY 16:22:01 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:02:25  Checking assertions in step 3..\nSBY 16:22:30 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:02:55  Checking assumptions in step 4..\nSBY 16:22:41 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:03:06  Checking assertions in step 4..\nSBY 16:23:04 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:03:29  Checking assumptions in step 5..\nSBY 16:23:19 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:03:44  Checking assertions in step 5..\nSBY 16:23:47 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:04:12  Checking assumptions in step 6..\nSBY 16:24:10 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:04:34  Checking assertions in step 6..\nSBY 16:24:22 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:04:46  Checking assumptions in step 7..\nSBY 16:24:32 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:04:57  Checking assertions in step 7..\nSBY 16:25:05 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:05:30  Checking assumptions in step 8..\nSBY 16:25:18 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:05:43  Checking assertions in step 8..\nSBY 16:26:18 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:06:43  waiting for solver (1 minute)\nSBY 16:26:30 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:06:55  Checking assumptions in step 9..\nSBY 16:26:46 [check_S36_yosys_custom_miter_task_bitwuzla] engine_0: ##   0:07:11  Checking assertions in step 9..\n",
+    "timestamp": 1785248830.8209634
+  },
+  {
+    "target": "miter-extra-asserts",
+    "flavor": "yosys",
+    "size": 4,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "PASS",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 10.0,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785248840.7727334
+  },
+  {
+    "target": "miter-extra-asserts",
+    "flavor": "yosys",
+    "size": 8,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "PASS",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 119.0,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785248959.8008697
+  },
+  {
+    "target": "miter-extra-asserts",
+    "flavor": "yosys",
+    "size": 16,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 645.3,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785249605.0839937
+  },
+  {
+    "target": "miter-extra-asserts",
+    "flavor": "yosys",
+    "size": 32,
+    "solved": false,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "TIMEOUT"
+    },
+    "wall_seconds": 1800.1,
+    "make_returncode": null,
+    "make_timed_out": true,
+    "build_error": false,
+    "log_tail": "1..\nSBY 17:01:06 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:00:19  Checking assumptions in step 2..\nSBY 17:01:07 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:00:20  Checking assertions in step 2..\nSBY 17:01:11 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:00:23  Checking assumptions in step 3..\nSBY 17:01:12 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:00:25  Checking assertions in step 3..\nSBY 17:01:16 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:00:29  Checking assumptions in step 4..\nSBY 17:01:20 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:00:32  Checking assertions in step 4..\nSBY 17:01:27 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:00:39  Checking assumptions in step 5..\nSBY 17:01:31 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:00:44  Checking assertions in step 5..\nSBY 17:02:19 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:01:32  Checking assumptions in step 6..\nSBY 17:02:25 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:01:38  Checking assertions in step 6..\nSBY 17:03:26 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:02:38  waiting for solver (1 minute)\nSBY 17:03:30 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:02:43  Checking assumptions in step 7..\nSBY 17:03:40 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:02:53  Checking assertions in step 7..\nSBY 17:04:40 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:03:53  waiting for solver (1 minute)\nSBY 17:08:40 [check_S32_yosys_custom_miter_with_extra_asserts_task_bitwuzla] engine_0: ##   0:07:53  waiting for solver (5 minutes)\n",
+    "timestamp": 1785251405.2083318
+  },
+  {
+    "target": "miter-extra-asserts",
+    "flavor": "yosys",
+    "size": 24,
+    "solved": true,
+    "alarm": false,
+    "statuses": {
+      "task_abc": "TIMEOUT",
+      "task_aiger": "PASS"
+    },
+    "wall_seconds": 828.5,
+    "make_returncode": 2,
+    "make_timed_out": false,
+    "build_error": false,
+    "log_tail": null,
+    "timestamp": 1785252233.6641417
+  }
+]

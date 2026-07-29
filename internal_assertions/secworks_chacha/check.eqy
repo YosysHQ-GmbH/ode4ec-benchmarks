@@ -1,0 +1,29 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i slang
+read_slang -keep-hierarchy ../src/chacha.v ../src/chacha_core.v ../src/chacha_qr.v
+
+hierarchy -check -top chacha
+memory_map -formal
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top chacha
+
+[script]
+select -module chacha
+fminit -seq reset_n 0,0,1
+fminit -set clk 0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+engine smtbmc bitwuzla
+depth 8

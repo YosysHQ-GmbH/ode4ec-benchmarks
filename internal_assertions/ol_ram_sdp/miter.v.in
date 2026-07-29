@@ -1,0 +1,47 @@
+module miter (
+    input Clk,
+    input [$clog2(@DEPTH@)-1:0] Wr_Addr,
+    input Wr_Ena,
+    input [@WIDTH@-1:0] Wr_Data,
+    input [$clog2(@DEPTH@)-1:0] Rd_Addr,
+    input Rd_Ena
+);
+    wire [@WIDTH@-1:0] gold_Rd_Data, gate_Rd_Data;
+
+`ifdef INTERNAL_ASSERTS
+    `include "internal_helper_decls.vh"
+`endif
+
+    gold_top i_gold (
+        .Clk(Clk),
+        .Wr_Addr(Wr_Addr),
+        .Wr_Ena(Wr_Ena),
+        .Wr_Data(Wr_Data),
+        .Rd_Addr(Rd_Addr),
+        .Rd_Ena(Rd_Ena),
+        .Rd_Data(gold_Rd_Data)
+`ifdef INTERNAL_ASSERTS
+        `include "internal_helper_ports_a.vh"
+`endif
+    );
+
+    gate_top i_gate (
+        .Clk(Clk),
+        .Wr_Addr(Wr_Addr),
+        .Wr_Ena(Wr_Ena),
+        .Wr_Data(Wr_Data),
+        .Rd_Addr(Rd_Addr),
+        .Rd_Ena(Rd_Ena),
+        .Rd_Data(gate_Rd_Data)
+`ifdef INTERNAL_ASSERTS
+        `include "internal_helper_ports_b.vh"
+`endif
+    );
+
+    always @(posedge Clk) begin
+        assert(gold_Rd_Data == gate_Rd_Data);
+`ifdef INTERNAL_ASSERTS
+        `include "internal_helper_asserts.vh"
+`endif
+    end
+endmodule

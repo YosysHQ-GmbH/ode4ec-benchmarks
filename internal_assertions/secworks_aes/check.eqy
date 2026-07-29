@@ -1,0 +1,29 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i slang
+read_slang -keep-hierarchy ../src/aes.v ../src/aes_core.v ../src/aes_decipher_block.v ../src/aes_encipher_block.v ../src/aes_inv_sbox.v ../src/aes_key_mem.v ../src/aes_sbox.v
+
+hierarchy -check -top aes 
+memory_map -formal
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top aes
+
+[script]
+select -module aes 
+fminit -seq reset_n 0,0,1
+fminit -set clk 0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+engine smtbmc bitwuzla
+depth 8

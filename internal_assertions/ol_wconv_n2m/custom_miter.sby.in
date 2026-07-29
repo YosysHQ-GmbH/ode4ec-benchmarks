@@ -1,0 +1,55 @@
+[tasks]
+task_btor
+task_bitwuzla
+task_abc
+task_aiger
+
+[options]
+task_btor: mode bmc
+task_btor: depth 20
+
+task_bitwuzla: mode bmc
+task_bitwuzla: depth 20
+
+task_abc: mode prove
+task_aiger: mode prove
+
+[engines]
+task_btor: btor btormc
+task_bitwuzla: smtbmc bitwuzla
+
+task_abc: abc pdr
+task_aiger: aiger suprove
+
+[script]
+# Gold
+read_rtlil @GOLD@
+chformal -assert -remove
+
+# Gate
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil @GATE@
+chformal -assert -remove
+
+# Miter
+plugin -i slang
+read_slang --top miter @MITER@
+
+hierarchy -top miter
+flatten
+
+prep -top miter
+opt
+fminit -seq Rst 1,1,0 -posedge Clk
+
+async2sync
+clk2fflogic
+
+setundef -zero
+setundef -undriven -init -zero
+
+[files]
+../sky130
+@MITER@
+@GOLD@
+@GATE@

@@ -1,0 +1,64 @@
+[tasks]
+task_btor
+task_bitwuzla
+task_abc
+task_aiger
+
+[options]
+task_btor: mode bmc
+task_btor: depth 20
+
+task_bitwuzla: mode bmc
+task_bitwuzla: depth 20
+
+task_abc: mode prove
+task_aiger: mode prove
+
+[engines]
+task_btor: btor btormc
+task_bitwuzla: smtbmc bitwuzla
+
+task_abc: abc pdr
+task_aiger: aiger suprove
+
+[script]
+# Gold
+plugin -i ghdl
+ghdl --std=08 -frelaxed -gWidth_g=@WIDTH@ -gDirection_g=@DIRECTION@ -gMaxShift_g=@MAX@ src/olo_base_pkg_array.vhd src/olo_base_pkg_attribute.vhd src/olo_base_pkg_math.vhd src/olo_base_pkg_logic.vhd src/olo_base_pkg_string.vhd src/olo_base_cc_reset.vhd src/olo_base_cc_bits.vhd src/olo_base_ram_sdp.vhd src/olo_base_dyn_sft.vhd -e olo_base_dyn_sft
+
+hierarchy -check -top olo_base_dyn_sft
+memory_map -formal
+flatten
+
+rename olo_base_dyn_sft gold_top
+design -stash gold
+
+# Gate
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+plugin -i slang
+read_slang --top olo_base_dyn_sft ./@NETLIST@
+
+rename olo_base_dyn_sft gate_top 
+design -stash gate
+
+# Miter
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+design -copy-from gold -as gold_top gold_top
+design -copy-from gate -as gate_top gate_top
+
+#equiv_make gold_top gate_top equiv_miter
+miter -equiv -flatten -make_assert gold_top gate_top equiv_miter
+hierarchy -top equiv_miter
+
+select -module equiv_miter
+fminit -seq in_Rst 1,1,0
+fminit -seq in_Clk 0,'z
+select -clear
+
+clk2fflogic
+setundef -undriven -init -zero
+
+[files]
+../src
+../sky130
+@NETLIST@

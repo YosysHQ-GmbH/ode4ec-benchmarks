@@ -1,0 +1,5 @@
+src/poly1305.v
+src/poly1305_core.v
+src/poly1305_final.v
+src/poly1305_mulacc.v
+src/poly1305_pblock.v

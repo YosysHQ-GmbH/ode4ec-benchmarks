@@ -1,0 +1,31 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i ghdl
+ghdl --std=08 ../src/pp_alu.vhd ../src/pp_alu_control_unit.vhd ../src/pp_alu_mux.vhd ../src/pp_comparator.vhd ../src/pp_constants.vhd ../src/pp_control_unit.vhd ../src/pp_counter.vhd ../src/pp_csr.vhd ../src/pp_csr_alu.vhd ../src/pp_csr_unit.vhd ../src/pp_decode.vhd ../src/pp_execute.vhd ../src/pp_fetch.vhd ../src/pp_icache.vhd ../src/pp_imm_decoder.vhd ../src/pp_memory.vhd ../src/pp_potato.vhd ../src/pp_register_file.vhd ../src/pp_types.vhd ../src/pp_utilities.vhd ../src/pp_wb_adapter.vhd ../src/pp_wb_arbiter.vhd ../src/pp_writeback.vhd ../src/pp_core.vhd -e pp_potato
+hierarchy -check -top pp_potato
+memory_map -formal
+async2sync
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top pp_potato
+
+[script]
+select -module pp_potato 
+fminit -seq reset 1,1,0
+fminit -set clk 0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+#engine aiger suprove
+#engine abc pdr
+engine smtbmc bitwuzla
+depth 16

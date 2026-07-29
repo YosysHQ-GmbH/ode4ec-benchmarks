@@ -1,0 +1,6 @@
+internal_assertions/orfs/
+internal_assertions/results.json
+**/run/
+**/internal_asserts/
+**/openroad/
+.nvim/svlangserver/
