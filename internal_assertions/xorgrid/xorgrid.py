@@ -43,14 +43,13 @@ module xorgrid (
 
     rng = np.random.default_rng(S)
     randint = rng.integers
-
+    lastreg = f"reg{W - 1}x{H - 1}[{N - 1}]"
     for x in range(W):
         for y in range(H):
             print(f"  reg [{N - 1}:0] reg{x}x{y};")
             print(f"  wire [{F - 1}:0] fin{x}x{y};")
-    print()
+            print()
 
-    lastreg = f"reg{W - 1}x{H - 1}[{N - 1}]"
     for x in range(W):
         for y in range(H):
             print("  always @(posedge clk) begin")

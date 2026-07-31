@@ -1,12 +1,8 @@
 `default_nettype none
 
-// Fixed regardless of swept grid SIZE: I/O/C are pinned constants for the
-// whole xorgrid sweep (see Makefile), so this wrapper never needs
-// regeneration per SIZE -- only the generated RTL underneath gold_top/
-// gate_top grows.
 module miter
-  #(parameter I = 32,
-    parameter O = 32,
+  #(parameter I = 16,
+    parameter O = 16,
     parameter C = 16)
    (
     input wire          clk,

@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-import argparse
 import re
 import sys
 from pathlib import Path
@@ -40,7 +39,7 @@ def match_wire_widhts(token: str, wires: Wires) -> list[str]:
     width, offset = wires.get(name, (1, 0))
     if width <= 1:
         return [name]
-    return [f"{name}[{offset + 1}]" for i in range(width)]
+    return [f"{name}[{offset + i}]" for i in range(width)]
 
 
 def parse_wires_and_ports(lines: list[str]) -> tuple[Wires, set[str]]:
@@ -167,6 +166,17 @@ def match_by_src(
     return pairs
 
 
+def select_pairs(all_pairs: list[Pair], max_asserts: "int | None") -> list[Pair]:
+    if max_asserts is None:
+        return all_pairs
+    bases = sorted({p[0] for p in all_pairs})
+    if len(bases) <= max_asserts:
+        return all_pairs
+    stride = len(bases) / max_asserts
+    selected = {bases[int(i * stride)] for i in range(max_asserts)}
+    return [p for p in all_pairs if p[0] in selected]
+
+
 def glob_escape(s: str) -> str:
     return re.sub(r"([*?\[\]])", r"\\\1", s)
 
@@ -222,51 +232,29 @@ def write_output_files(
     out_paths["asserts"].write_text("\n".join(assert_lines) + "\n")
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--backend",
-        required=True,
-        choices=["yosys", "orfs"],
-    )
-    parser.add_argument(
-        "--combo",
-        required=True,
-    )
-    args = parser.parse_args()
-
-    GOLD_NETLIST = RUN_DIR / f"check_{args.combo}_gold.il"
-    GATE_NETLIST = RUN_DIR / f"check_{args.combo}_{args.backend}_gate.il"
-
-    OUT_FOLDER = Path("internal_asserts")
-
-    suffix = f"{args.combo}_{args.backend}"
-    out_expose_ys = OUT_FOLDER / f"expose_{suffix}.ys"
-    out_decls_vh = OUT_FOLDER / f"decls_{suffix}.vh"
-    out_ports_a_vh = OUT_FOLDER / f"ports_a_{suffix}.vh"
-    out_ports_b_vh = OUT_FOLDER / f"ports_b_{suffix}.vh"
-    out_asserts_vh = OUT_FOLDER / f"asserts_{suffix}.vh"
+def generate_assert_files(
+    gold_netlist, gate_netlist, expose, decls, ports_a, ports_b, asserts
+):
+    if not gold_netlist.exists():
+        sys.exit(f"{gold_netlist} not found")
+    if not gate_netlist.exists():
+        sys.exit(f"{gate_netlist} not found")
 
     out_paths = {
-        "expose": out_expose_ys,
-        "decls": out_decls_vh,
-        "ports_a": out_ports_a_vh,
-        "ports_b": out_ports_b_vh,
-        "asserts": out_asserts_vh,
+        "expose": expose,
+        "decls": decls,
+        "ports_a": ports_a,
+        "ports_b": ports_b,
+        "asserts": asserts,
     }
 
-    if not GOLD_NETLIST.exists():
-        sys.exit(f"{GOLD_NETLIST} not found")
-    if not GATE_NETLIST.exists():
-        sys.exit(f"{GATE_NETLIST} not found")
-
-    gold_content = GOLD_NETLIST.read_text()
+    gold_content = gold_netlist.read_text()
     gold_lines = get_module_lines(gold_content, "gold_top")
     gold_wires, gold_ports = parse_wires_and_ports(gold_lines)
     gold_cells = parse_register_cells(gold_lines)
     gold_names = names_from_cells(gold_cells, gold_wires, gold_ports)
 
-    gate_content = GATE_NETLIST.read_text()
+    gate_content = gate_netlist.read_text()
     gate_lines = get_module_lines(gate_content, "gate_top")
     gate_wires, gate_ports = parse_wires_and_ports(gate_lines)
     gate_cells = parse_register_cells(gate_lines)
@@ -290,7 +278,3 @@ def main() -> None:
     )
 
     write_output_files(all_pairs, out_paths=out_paths, gold_wires=gold_wires)
-
-
-if __name__ == "__main__":
-    main()

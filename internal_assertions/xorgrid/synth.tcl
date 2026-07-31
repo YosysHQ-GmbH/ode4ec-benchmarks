@@ -1,11 +1,6 @@
 # Based on serv/synth.tcl
 yosys -import
 
-set design           $::env(TOP_MODULE)
-set lib_file         $::env(TIMING_LIB)
-set design_v         $::env(DESIGN_V)
-set synth_v_file     $::env(WRAPPER_SYNTH)
-
 # identify special cells/associated pins
 # constants
 set tiehi_cell       sky130_fd_sc_hd__conb_1
@@ -30,8 +25,8 @@ set dlatch_n_q_pin   Q
 
 # read design
 plugin -i slang
-read_slang ${design_v} --top ${design}
-hierarchy -top ${design}
+read_slang xorgrid.v --top xorgrid
+hierarchy -check -top xorgrid
 # Remove formal properties (we really need to make synth do this by default)
 chformal -remove
 
@@ -40,9 +35,9 @@ synth -run :check
 stat
 
 # map to cell lib
-dfflibmap -liberty ${lib_file}
+dfflibmap -liberty ../../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
 dfflegalize -cell {$_DLATCH_?_} x
-abc -liberty ${lib_file}
+abc -liberty ../../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
 
 # Split nets to single bits
 splitnets
@@ -66,9 +61,9 @@ flatten
 
 # Check and print statistics
 check -mapped -noinit
-tee -o stat.txt stat -liberty ${lib_file}
+tee -o stat.txt stat -liberty ../../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
 
 # write synthesized design
-yosys rename ${design} gate_top
+yosys rename xorgrid gate_top
 flatten
-write_rtlil ${synth_v_file}
+write_rtlil gate.il
