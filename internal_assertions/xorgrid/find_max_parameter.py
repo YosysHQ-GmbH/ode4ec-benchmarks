@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 from collections import deque
+from collections.abc import Iterator
 from pathlib import Path
 from typing import TextIO
 
@@ -18,22 +19,36 @@ miter_sby_file = Path("miter.sby.in")
 verilog_file = Path("xorgrid.v")
 
 
-def live_window_stream(stream: TextIO, num_lines: int = 5) -> None:
+def live_window_stream(stream: TextIO, num_lines: int = 5, indent: int = 1) -> None:
     window = deque(maxlen=num_lines)
     lines_currently_displayed = 0
+    prefix = "    " * indent
 
     for line in stream:
-        clean_line = line.strip()
-        window.append(clean_line)
+        term_width = shutil.get_terminal_size((80, 20)).columns
+        clean_line = line.rstrip("\n")
+
+        available_width = term_width - len(prefix)
+        if len(clean_line) > available_width:
+            clean_line = clean_line[: max(available_width - 1, 0)]
+
+        window.append(prefix + clean_line)
 
         if lines_currently_displayed > 0:
             sys.stdout.write(f"\033[{lines_currently_displayed}A")
 
         for w_line in window:
-            sys.stdout.write(f"\033[2K{w_line}\n")
+            sys.stdout.write(f"\033[2K\r{w_line}\n")
 
         sys.stdout.flush()
         lines_currently_displayed = len(window)
+
+    if lines_currently_displayed > 0:
+        sys.stdout.write(f"\033[{lines_currently_displayed}A")
+        for _ in range(lines_currently_displayed):
+            sys.stdout.write("\033[2K\n")
+        sys.stdout.write(f"\033[{lines_currently_displayed}A")
+        sys.stdout.flush()
 
 
 class Setup:
@@ -162,7 +177,6 @@ class Setup:
 
         for marker in MARKER_FILES:
             marker_path = self.export_dir / f"{sby_file.split('.')[0]}_{task}" / marker
-            print(marker_path)
             if os.path.exists(marker_path):
                 content = marker_path.read_text(encoding="utf-8-sig")
                 match_proccess = PROCESS_TIME_PATTERN.search(content)
@@ -194,7 +208,6 @@ class Setup:
             command,
             cwd=self.export_dir,
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
             text=True,
         )
 
@@ -227,42 +240,82 @@ def merge_by_name(list_m, list_i):
     return merged
 
 
-def main() -> None:
+def run_benchmark(setup_gen: Callable[[], Iterator[int]]) -> None:
     tasks = ["btor", "bitwuzla", "abc", "aiger"]
     end_results_miter = {}
-    for task in tasks:
-        results = [("", "PASS", "---", "---")]
-
-        i = 2
-        while results[-1][1] == "PASS":
-            setup = Setup(16, 16, 16, 8, 8, i, i, 4, 0, 60 * 5)
-            results.append(setup.run_task(task, "miter.sby"))
-            i += 1
-
-        end_results_miter[task] = results[1:]
-
     end_results_internal_asserts = {}
     for task in tasks:
-        results = [("", "PASS", "---", "---")]
+        results_miter = [("", "PASS", "---", "---")]
+        results_internal_asserts = [("", "PASS", "---", "---")]
 
-        i = 2
-        while results[-1][1] == "PASS":
-            setup = Setup(16, 16, 16, 8, 8, i, i, 4, 0, 60 * 5)
-            results.append(setup.run_task(task, "miter_extra_asserts.sby"))
-            i += 1
+        task_setups = setup_gen()
+        while (
+            results_miter[-1][1] == "PASS" or results_internal_asserts[-1][1] == "PASS"
+        ):
+            setup = next(task_setups)
 
-        end_results_internal_asserts[task] = results[1:]
+            if results_miter[-1][1] == "PASS":
+                print(f"Running: MI {task} {setup.name}")
+                results_miter.append(setup.run_task(task, "miter.sby"))
+            if results_internal_asserts[-1][1] == "PASS":
+                print(f"Running: IA {task} {setup.name}")
+                results_internal_asserts.append(
+                    setup.run_task(task, "miter_extra_asserts.sby")
+                )
+
+        end_results_miter[task] = results_miter[1:]
+        end_results_internal_asserts[task] = results_internal_asserts[1:]
+    print()
 
     for task in tasks:
         print(f"=== Task {task} ===")
-        print("Task\t\t\t\t\t\tResult (MI)\tProcess (MI)\tProcess (IA)\tResult (IA)")
+        print(
+            "Task\t\t\t\t\t\tResult (MI)\tResult (IA)\tProcess (MI)\tProcess (IA)\tClock (MI)\tClock (IA)"
+        )
         merged = merge_by_name(
             end_results_miter[task], end_results_internal_asserts[task]
         )
 
         for name, result_m, clock_m, process_m, result_a, clock_a, process_a in merged:
-            print(f"{name}\t\t{result_m}\t\t{process_m}\t\t{process_a}\t\t{result_a}")
+            print(
+                f"{name}\t\t{result_m}\t\t{result_a}\t\t{process_m}\t\t{process_a}\t\t{clock_m}\t\t{clock_a}"
+            )
         print()
+
+
+def main() -> None:
+    print("=== Tile Grid Scaling ===")
+
+    def tile_grid_setup():
+        i = 2
+        while True:
+            setup = Setup(16, 16, 16, i, i, 8, 6, 4, 0, 60 * 10)
+            yield setup
+            i += 1
+
+    run_benchmark(lambda: tile_grid_setup())
+
+    print("=== Control Bit Scaling ===")
+
+    def control_bit_setup():
+        i = 1
+        while True:
+            setup = Setup(16, 16, 2**i, i * 2, i * 2, 8, 6, 4, 0, 60 * 10)
+            yield setup
+            i += 1
+
+    run_benchmark(lambda: control_bit_setup())
+
+    print("=== Max Distance Scaling ===")
+
+    def max_distance_setup():
+        i = 1
+        while True:
+            setup = Setup(16, 16, 16, i * 2, i * 2, 8, 6, 2**i, 0, 60 * 10)
+            yield setup
+            i += 1
+
+    run_benchmark(lambda: max_distance_setup())
 
 
 if __name__ == "__main__":

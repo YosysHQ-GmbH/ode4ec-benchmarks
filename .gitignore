@@ -1,6 +1,8 @@
 internal_assertions/orfs/
 internal_assertions/results.json
+internal_assertions/report.json
 **/run/
 **/internal_asserts/
 **/openroad/
 .nvim/svlangserver/
+__pycache__/
