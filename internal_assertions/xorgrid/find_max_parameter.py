@@ -194,6 +194,8 @@ class Setup:
         result = self.read_marker_file(task, sby_file)
         if result[1] != "---":
             return result
+        # else:
+        # return (self.name, "---", "---", "---")
 
         command = [
             "sby",
@@ -316,6 +318,17 @@ def main() -> None:
             i += 1
 
     run_benchmark(lambda: max_distance_setup())
+
+    print("=== Input bits Scaling ===")
+
+    def input_bits_setup():
+        i = 1
+        while True:
+            setup = Setup(i, i, i, 12, 12, 8, 8, 4, 0, 60 * 10)
+            yield setup
+            i += 1
+
+    run_benchmark(lambda: input_bits_setup())
 
 
 if __name__ == "__main__":
