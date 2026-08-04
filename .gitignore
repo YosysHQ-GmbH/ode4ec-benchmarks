@@ -5,4 +5,4 @@ internal_assertions/report.json
 **/internal_asserts/
 **/openroad/
 .nvim/svlangserver/
-__pycache__/
+**/__pycache__/
