@@ -1,0 +1,9 @@
+read -sv 06_registered_multi_macc.sv
+hierarchy -top registered_multi_macc
+script coarse_pre_alumacc.ys
+write_rtlil 06_registered_multi_macc_pre_alumacc.il
+write_verilog -noexpr 06_registered_multi_macc_pre_alumacc.v
+alumacc
+opt
+write_rtlil 06_registered_multi_macc_post_alumacc.il
+write_verilog -noexpr 06_registered_multi_macc_post_alumacc.v

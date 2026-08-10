@@ -1,0 +1,9 @@
+read -sv 01_simple_adder.sv
+hierarchy -top simple_adder
+script coarse_pre_alumacc.ys
+write_rtlil 01_simple_adder_pre_alumacc.il
+write_verilog -noexpr 01_simple_adder_pre_alumacc.v
+alumacc
+opt
+write_rtlil 01_simple_adder_post_alumacc.il
+write_verilog -noexpr 01_simple_adder_post_alumacc.v

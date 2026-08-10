@@ -1,0 +1,9 @@
+read -sv 08_registered_add_sub_chain.sv
+hierarchy -top registered_add_sub_chain
+script coarse_pre_alumacc.ys
+write_rtlil 08_registered_add_sub_chain_pre_alumacc.il
+write_verilog -noexpr 08_registered_add_sub_chain_pre_alumacc.v
+alumacc
+opt
+write_rtlil 08_registered_add_sub_chain_post_alumacc.il
+write_verilog -noexpr 08_registered_add_sub_chain_post_alumacc.v

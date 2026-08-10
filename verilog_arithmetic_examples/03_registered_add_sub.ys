@@ -1,0 +1,9 @@
+read -sv 03_registered_add_sub.sv
+hierarchy -top registered_add_sub
+script coarse_pre_alumacc.ys
+write_rtlil 03_registered_add_sub_pre_alumacc.il
+write_verilog -noexpr 03_registered_add_sub_pre_alumacc.v
+alumacc
+opt
+write_rtlil 03_registered_add_sub_post_alumacc.il
+write_verilog -noexpr 03_registered_add_sub_post_alumacc.v

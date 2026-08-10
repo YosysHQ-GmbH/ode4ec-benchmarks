@@ -1,0 +1,21 @@
+# script extracted from the beginning of the "coarse:" section of the synth command, leaving out:
+# - non-default optional calls
+# - second `check` call
+# - fsm related calls (for the simple examples created so far these should be no-ops)
+
+proc
+opt_expr
+opt_clean
+check
+opt
+wreduce
+peepopt
+opt_clean
+
+# next steps would be:
+# booth
+# alumacc
+# arith_tree
+# opt
+# we're not sure yet where in this sequence the use case will be implemented
+# so they can be called separately after this script

@@ -1,0 +1,9 @@
+read -sv 05_multiply_accumulate.sv
+hierarchy -top multiply_accumulate
+script coarse_pre_alumacc.ys
+write_rtlil 05_multiply_accumulate_pre_alumacc.il
+write_verilog -noexpr 05_multiply_accumulate_pre_alumacc.v
+alumacc
+opt
+write_rtlil 05_multiply_accumulate_post_alumacc.il
+write_verilog -noexpr 05_multiply_accumulate_post_alumacc.v

@@ -1,0 +1,9 @@
+read -sv 02_registered_adder.sv
+hierarchy -top registered_adder
+script coarse_pre_alumacc.ys
+write_rtlil 02_registered_adder_pre_alumacc.il
+write_verilog -noexpr 02_registered_adder_pre_alumacc.v
+alumacc
+opt
+write_rtlil 02_registered_adder_post_alumacc.il
+write_verilog -noexpr 02_registered_adder_post_alumacc.v
