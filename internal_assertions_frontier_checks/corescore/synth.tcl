@@ -1,0 +1,71 @@
+# Based on serv/synth.tcl
+yosys -import
+
+# identify special cells/associated pins
+# constants
+set tiehi_cell       sky130_fd_sc_hd__conb_1
+set tiehi_pin        HI
+set tielo_cell       sky130_fd_sc_hd__conb_1
+set tielo_pin        LO
+# buffers
+set clkbuf_cell      sky130_fd_sc_hd__clkbuf_1
+set clkbuf_pin       X
+set buf_cell         sky130_fd_sc_hd__buf_1
+set buf_ipin         A
+set buf_opin         X
+# latches
+set dlatch_p_cell    sky130_fd_sc_hd__dlxtp_1
+set dlatch_p_d_pin   D
+set dlatch_p_e_pin   GATE
+set dlatch_p_q_pin   Q
+set dlatch_n_cell    sky130_fd_sc_hd__dlxtn_1
+set dlatch_n_d_pin   D
+set dlatch_n_e_pin   GATE_N
+set dlatch_n_q_pin   Q
+
+# read design
+plugin -i slang
+# --allow-use-before-declare: see gold_prepare.tcl
+read_slang -F ../../files.txt --top corescore_de10_nano --allow-use-before-declare
+hierarchy -top corescore_de10_nano
+# Remove formal properties (we really need to make synth do this by default)
+chformal -remove
+
+# run basic synthesis & logic optimization
+synth -run :check
+stat
+
+# map to cell lib
+dfflibmap -liberty ../../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+dfflegalize -cell {$_DLATCH_?_} x
+abc -liberty ../../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+
+
+# Split nets to single bits
+splitnets
+# Set X to zero
+setundef -zero
+
+# Clean up processing cruft
+opt
+
+# mapping constants and clock buffers to cell lib
+hilomap -hicell ${tiehi_cell} ${tiehi_pin} -locell ${tielo_cell} ${tielo_pin}
+clkbufmap -buf ${clkbuf_cell} ${clkbuf_pin}
+
+# Insert buffers
+insbuf -buf ${buf_cell} ${buf_ipin} ${buf_opin}
+
+# Clean up the design
+opt_clean -purge
+
+flatten
+
+# Check and print statistics
+check -mapped -noinit
+tee -o stat.txt stat -liberty ../../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+
+# write synthesized design
+yosys rename corescore_de10_nano gate_top
+flatten
+write_rtlil gate.il
