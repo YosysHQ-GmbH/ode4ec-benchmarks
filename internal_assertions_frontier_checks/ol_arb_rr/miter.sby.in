@@ -1,0 +1,32 @@
+[script]
+# Gold
+read_rtlil gold.il
+chformal -assert -remove
+
+# Gate
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil gate.il
+chformal -assert -remove
+
+# Miter
+plugin -i slang
+read_slang --top miter miter.v -G WIDTH={WIDTH}
+
+hierarchy -top miter
+flatten
+
+prep -top miter
+opt
+fminit -seq Rst 1,1,0 -posedge Clk
+
+async2sync
+clk2fflogic
+
+setundef -zero
+setundef -undriven -init -zero
+
+[files]
+../../sky130
+miter.v
+gold.il
+gate.il
