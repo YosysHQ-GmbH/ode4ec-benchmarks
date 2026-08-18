@@ -27,11 +27,13 @@ gold_prep_file = Path("gold_prepare.tcl")
 gate_synth_file = Path("synth.tcl")
 miter_file = Path("miter.v")
 internal_assert_file = Path("miter_extra_asserts.sby.in")
+tasks_sby_file = Path("tasks.sby.in")
 miter_sby_file = Path("miter.sby.in")
 
+TASKS_SBY_TEMPLATE = tasks_sby_file.read_text()
 MITER_SBY_TEMPLATE = miter_sby_file.read_text()
 INTERNAL_ASSERTS_SBY_TEMPLATE = internal_assert_file.read_text()
-TASKS = parse_tasks(MITER_SBY_TEMPLATE)
+TASKS = parse_tasks(TASKS_SBY_TEMPLATE)
 
 
 class Setup(SetupBase):
@@ -80,16 +82,18 @@ class Setup(SetupBase):
                     build / "asserts.vh",
                 )
 
-        # Sby file templates (rewritten every time, cheap, so `timeout` can
-        # change across runs without invalidating the expensive build above)
+        tasks_sby_final_content = TASKS_SBY_TEMPLATE.format(timeout=str(timeout))
+
         miter_sby_final_content = MITER_SBY_TEMPLATE.format(timeout=str(timeout))
-        (self.export_dir / "miter.sby").write_text(miter_sby_final_content)
+        (self.export_dir / "miter.sby").write_text(
+            tasks_sby_final_content + "\n\n" + miter_sby_final_content
+        )
 
         internal_asserts_sby_final_content = INTERNAL_ASSERTS_SBY_TEMPLATE.format(
             timeout=str(timeout)
         )
         (self.export_dir / "miter_extra_asserts.sby").write_text(
-            internal_asserts_sby_final_content
+            tasks_sby_final_content + "\n\n" + internal_asserts_sby_final_content
         )
 
     def _generate_rtl(self, count: int, build: Path) -> None:
@@ -137,7 +141,7 @@ class Setup(SetupBase):
 
 def main() -> None:
     benchmarks: list[Benchmark] = [
-        ("Instance Count Scaling", lambda n: Setup(n, 60 * 15), TASKS, 1),
+        ("Instance Count Scaling", lambda n: Setup(n, 60 * 1), TASKS, 1),
     ]
     run_and_report(benchmarks, run_dir)
 

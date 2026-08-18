@@ -1,0 +1,107 @@
+[tasks]
+abc-pdr
+abc-sim3
+abc-bmc3
+
+aiger-suprove
+aiger-avy
+aiger-rIC3
+aiger-bmc
+
+smtbmc-yices
+smtbmc-bootlector
+smtbmc-bitwuzla
+smtbmc-z3
+smtbmc-mathsat
+smtbmc-cvc4
+smtbmc-cvc5
+
+btor-btormc
+btor-pono
+btor-rIC3
+
+itp
+
+[options]
+itp: mode prove
+
+smtbmc-yices: mode bmc
+smtbmc-yices: depth 50
+smtbmc-yices: timeout {timeout}
+
+smtbmc-bootlector: mode bmc
+smtbmc-bootlector: depth 50
+smtbmc-bootlector: timeout {timeout}
+
+smtbmc-bitwuzla: mode bmc
+smtbmc-bitwuzla: depth 50
+smtbmc-bitwuzla: timeout {timeout}
+
+smtbmc-z3: mode bmc
+smtbmc-z3: depth 50
+smtbmc-z3: timeout {timeout}
+
+smtbmc-mathsat: mode bmc
+smtbmc-mathsat: depth 50
+smtbmc-mathsat: timeout {timeout}
+
+smtbmc-cvc4: mode bmc
+smtbmc-cvc4: depth 50
+smtbmc-cvc4: timeout {timeout}
+
+smtbmc-cvc5: mode bmc
+smtbmc-cvc5: depth 50
+smtbmc-cvc5: timeout {timeout}
+
+btor-btormc: mode bmc
+btor-btormc: depth 50
+btor-btormc: timeout {timeout}
+btor-pono: mode bmc
+btor-pono: depth 50
+btor-pono: timeout {timeout}
+btor-rIC3: mode bmc
+btor-rIC3: depth 50
+btor-rIC3: timeout {timeout}
+
+abc-pdr: mode prove
+abc-pdr: timeout {timeout}
+abc-sim3: mode bmc
+abc-sim3: depth 50
+abc-sim3: timeout {timeout}
+abc-bmc3: mode bmc
+abc-bmc3: depth 50
+abc-bmc3: timeout {timeout}
+
+aiger-suprove: mode prove
+aiger-suprove: timeout {timeout}
+aiger-avy: mode prove
+aiger-avy: timeout {timeout}
+aiger-rIC3: mode prove
+aiger-rIC3: timeout {timeout}
+aiger-bmc: mode bmc 
+aiger-bmc: depth 50 
+aiger-bmc: timeout {timeout}
+
+[engines]
+itp: itp 20 0
+
+btor-btormc: btor btormc
+btor-pono: btor pono 
+btor-rIC3: btor rIC3 
+
+smtbmc-yices: smtbmc yices
+smtbmc-bootlector: smtbmc bootlector
+smtbmc-bitwuzla: smtbmc bitwuzla
+smtbmc-z3: smtbmc z3
+smtbmc-mathsat: smtbmc mathsat
+smtbmc-cvc4: smtbmc cvc4
+smtbmc-cvc5: smtbmc cvc5
+
+abc-pdr: abc pdr
+abc-sim3: abc sim3
+abc-bmc3: abc bmc3
+
+aiger-suprove: aiger suprove
+aiger-avy: aiger avy
+aiger-rIC3: aiger rIC3
+aiger-bmc: aiger aigbmc

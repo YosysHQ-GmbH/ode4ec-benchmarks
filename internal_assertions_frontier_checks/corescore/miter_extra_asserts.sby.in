@@ -1,24 +1,3 @@
-[tasks]
-bitwuzla
-btor
-smtbmc-z3
-
-[options]
-bitwuzla: mode bmc
-bitwuzla: depth 34
-bitwuzla: timeout {timeout}
-btor: mode bmc
-btor: depth 34
-btor: timeout {timeout}
-smtbmc-z3: mode prove
-smtbmc-z3: depth 50
-smtbmc-z3: timeout {timeout}
-
-[engines]
-btor: btor btormc
-bitwuzla: smtbmc bitwuzla
-smtbmc-z3: smtbmc z3 
-
 [script]
 # Gold
 read_rtlil gold.il
