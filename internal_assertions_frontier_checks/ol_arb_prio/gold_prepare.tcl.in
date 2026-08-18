@@ -1,0 +1,20 @@
+yosys -import
+
+plugin -i ghdl
+ghdl --std=08 -frelaxed -gWidth_g=@WIDTH@ -gLatency_g=@LATENCY@ \
+    ../../src/olo_base_pkg_array.vhd \
+    ../../src/olo_base_pkg_attribute.vhd \
+    ../../src/olo_base_pkg_math.vhd \
+    ../../src/olo_base_pkg_logic.vhd \
+    ../../src/olo_base_pkg_string.vhd \
+    ../../src/olo_base_arb_prio.vhd \
+    -e olo_base_arb_prio
+
+hierarchy -check -top olo_base_arb_prio
+memory_map -formal
+flatten
+opt_clean -purge
+chformal -assert -remove
+yosys rename olo_base_arb_prio gold_top
+flatten
+write_rtlil gold.il

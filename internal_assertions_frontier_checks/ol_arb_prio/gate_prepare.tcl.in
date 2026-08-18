@@ -1,0 +1,8 @@
+yosys -import
+
+read_liberty -ignore_miss_func ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_slang --top olo_base_arb_prio @NETLIST@
+yosys rename olo_base_arb_prio gate_top
+select gate_top
+write_rtlil -selected @GATE@
+select -clear
