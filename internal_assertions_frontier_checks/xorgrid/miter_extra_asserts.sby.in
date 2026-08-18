@@ -1,0 +1,33 @@
+[script]
+# Gold
+read_rtlil gold.il 
+
+# Gate
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil gate.il
+
+# Miter
+script expose.ys
+plugin -i slang
+read_slang --top miter miter.v -D INTERNAL_ASSERTS -G I={I} -G O={O} -G C={C}
+hierarchy -top miter
+flatten
+
+hierarchy -top miter
+
+setundef -zero
+setundef -undriven -init -zero
+
+async2sync
+clk2fflogic
+
+[files]
+../../sky130
+miter.v
+asserts.vh
+decls.vh
+expose.ys
+ports_a.vh 
+ports_b.vh
+gold.il
+gate.il
