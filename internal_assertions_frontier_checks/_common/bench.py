@@ -15,23 +15,6 @@ from .plots import generate_plots
 
 @contextmanager
 def atomic_build_dir(final_dir: Path) -> Iterator[Path]:
-    """Build `final_dir`'s contents in a scratch sibling directory and
-    atomically rename it into place only once the `with` block completes
-    without raising.
-
-    `final_dir` must not already exist -- callers check that first, since
-    it's the on-disk marker this harness uses to skip a Setup's expensive
-    RTL-generation/synthesis on a cache hit. Building "in place" instead
-    would mean a build interrupted partway through (Ctrl+C, a crash, or a
-    subprocess failure) leaves a directory at `final_dir` that looks
-    complete to that check but isn't -- every later run would then skip
-    regeneration and fail trying to read files that were never written,
-    until someone notices and deletes it by hand. Building into a scratch
-    directory first means an interrupted build simply never produces
-    `final_dir`, so the next run retries cleanly on its own. Raise inside
-    the `with` block (don't just `return`) to signal a failed build --
-    a bare `return` looks like success to a context manager.
-    """
     scratch_dir = final_dir.with_name(f".build-{final_dir.name}")
     if scratch_dir.exists():
         shutil.rmtree(scratch_dir)
@@ -191,8 +174,8 @@ def parse_tasks(content: str) -> list[str]:
     return sorted(tasks_in(content))
 
 
-def find_frontier(run: Callable[[int], bool], start: int = 8) -> int:
-    lo, hi = 0, start
+def find_frontier(run: Callable[[int], bool], start: int = 8, min_n: int = 1) -> int:
+    lo, hi = min_n - 1, start
     while run(hi):
         lo, hi = hi, hi * 2
     while hi - lo > 1:
@@ -202,7 +185,10 @@ def find_frontier(run: Callable[[int], bool], start: int = 8) -> int:
 
 
 def run_benchmark(
-    setup_gen: Callable[[int], SetupBase], tasks: list[str], start: int = 8
+    setup_gen: Callable[[int], SetupBase],
+    tasks: list[str],
+    start: int = 8,
+    min_n: int = 1,
 ) -> dict[str, pl.DataFrame]:
     task_frames: dict[str, pl.DataFrame] = {}
     frontiers_miter: dict[str, int] = {}
@@ -217,7 +203,22 @@ def run_benchmark(
             label: str, sby_file: str, sink: dict[int, dict]
         ) -> Callable[[int], bool]:
             def run(n: int) -> bool:
-                setup = setup_gen(n)
+                try:
+                    setup = setup_gen(n)
+                except Exception as exc:
+                    name = f"<setup-failed n={n}>"
+                    print(f"Setup failed: {label} {task} n={n}: {exc}")
+                    visited_setups[n] = {"name": name}
+                    sink[n] = {
+                        "name": name,
+                        "cells": None,
+                        "result": "SETUP_ERROR",
+                        "process_time": None,
+                        "process_secs": None,
+                        "clock_time": None,
+                        "clock_secs": None,
+                    }
+                    return False
                 visited_setups[n] = setup.row()
                 print(f"Running: {label} {task} {setup.name}")
                 row = setup.run_task(task, sby_file)
@@ -231,9 +232,9 @@ def run_benchmark(
             "IA", "miter_extra_asserts.sby", visited_internal_asserts
         )
 
-        frontiers_miter[task] = find_frontier(run_miter, start=start)
+        frontiers_miter[task] = find_frontier(run_miter, start=start, min_n=min_n)
         frontiers_internal_asserts[task] = find_frontier(
-            run_internal_asserts, start=start
+            run_internal_asserts, start=start, min_n=min_n
         )
 
         all_n = sorted(visited_setups)
@@ -268,7 +269,10 @@ def run_benchmark(
     return task_frames
 
 
-Benchmark = tuple[str, Callable[[int], SetupBase], list[str], int]
+Benchmark = (
+    tuple[str, Callable[[int], SetupBase], list[str], int]
+    | tuple[str, Callable[[int], SetupBase], list[str], int, int]
+)
 
 
 def run_and_report(benchmarks: list[Benchmark], run_dir: Path) -> None:
@@ -278,9 +282,11 @@ def run_and_report(benchmarks: list[Benchmark], run_dir: Path) -> None:
     pl.Config.set_tbl_width_chars(240)
 
     all_frames: list[pl.DataFrame] = []
-    for name, setup_gen, tasks, start in benchmarks:
+    for benchmark in benchmarks:
+        name, setup_gen, tasks, start, *rest = benchmark
+        min_n = rest[0] if rest else 1
         print(f"=== {name} ===")
-        task_frames = run_benchmark(setup_gen, tasks, start=start)
+        task_frames = run_benchmark(setup_gen, tasks, start=start, min_n=min_n)
         for task, df in task_frames.items():
             all_frames.append(
                 df.with_columns(

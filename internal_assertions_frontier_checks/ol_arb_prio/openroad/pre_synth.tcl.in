@@ -1,0 +1,27 @@
+yosys -import
+
+set instance_name  $::env(DESIGN_INSTANCE_NAME)
+set pre_synth_v    $::env(PRE_SYNTH_V)
+
+plugin -i ghdl
+ghdl --std=08 -frelaxed -gWidth_g=@WIDTH@ -gLatency_g=@LATENCY@ \
+    ../../src/olo_base_pkg_array.vhd \
+    ../../src/olo_base_pkg_attribute.vhd \
+    ../../src/olo_base_pkg_math.vhd \
+    ../../src/olo_base_pkg_logic.vhd \
+    ../../src/olo_base_pkg_string.vhd \
+    ../../src/olo_base_arb_prio.vhd \
+    -e olo_base_arb_prio
+
+hierarchy -top olo_base_arb_prio
+chformal -remove
+
+flatten
+opt_clean -purge
+
+# ORFS keys its flow off DESIGN_NAME in config.mk, which must be unique per
+# WIDTH/LATENCY and so differs from the fixed entity name olo_base_arb_prio;
+# rename to that instance name before handing off to ORFS.
+yosys rename olo_base_arb_prio ${instance_name}
+
+write_verilog -noattr ${pre_synth_v}

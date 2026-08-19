@@ -1,0 +1,7 @@
+export DESIGN_NAME = xorgrid_@SIZE@
+export PLATFORM    = sky130hd
+
+export VERILOG_FILES = @PRE_SYNTH_V@
+export SDC_FILE      = @CONSTRAINT_SDC@
+
+export SYNTH_MEMORY_MAX_BITS = 32768
