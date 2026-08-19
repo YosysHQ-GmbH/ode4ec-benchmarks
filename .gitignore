@@ -4,5 +4,7 @@ internal_assertions/report.json
 **/run/
 **/internal_asserts/
 **/openroad/
+!internal_assertions_frontier_checks/*/openroad/
+!internal_assertions_frontier_checks/*/openroad/**
 .nvim/svlangserver/
 **/__pycache__/**
