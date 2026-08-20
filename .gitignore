@@ -1,4 +1,5 @@
 internal_assertions/orfs/
+internal_assertions_frontier_checks/orfs/
 internal_assertions/results.json
 internal_assertions/report.json
 **/run/

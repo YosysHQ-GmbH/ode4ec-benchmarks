@@ -1,4 +1,4 @@
-SUBDIRS := $(filter-out _common/ sky130/,$(wildcard */))
+SUBDIRS := $(filter-out _common/ sky130/ orfs/,$(wildcard */))
 
 .PHONY: all clean orfs $(SUBDIRS) $(addsuffix run, $(SUBDIRS))
 
