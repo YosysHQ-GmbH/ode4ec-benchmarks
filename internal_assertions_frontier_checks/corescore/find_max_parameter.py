@@ -249,10 +249,10 @@ class OrfsSetup(SetupBase):
 
 def main() -> None:
     benchmarks: list[Benchmark] = [
-        ("Instance Count Scaling", lambda n: Setup(n, 60 * 1), TASKS, 1),
+        ("Instance Count Scaling", lambda n: Setup(n, 60 * 15), TASKS, 1),
         (
             "Instance Count Scaling (ORFS)",
-            lambda n: OrfsSetup(n, 60 * 1),
+            lambda n: OrfsSetup(n, 60 * 15),
             TASKS,
             1,
         ),
