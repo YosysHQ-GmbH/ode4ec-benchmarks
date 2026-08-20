@@ -1,4 +1,4 @@
-import glob
+import argparse
 import json
 import os
 import re
@@ -75,43 +75,6 @@ def classify_checktype(checktype: str) -> str | None:
         if checktype == token:
             return column
     return None
-
-
-def discover_benchmarks(root: str) -> list[tuple[str, str]]:
-    benchmarks: list[tuple[str, str]] = []
-    clean: list[str] = []
-
-    top_dirs = sorted(
-        d
-        for d in os.listdir(root)
-        if d not in IGNORED_DIRS
-        and os.path.isdir(os.path.join(root, d))
-        and os.path.isfile(os.path.join(root, d, "Makefile"))
-    )
-
-    for top_dir in top_dirs:
-        top_path = os.path.join(root, top_dir)
-        run_dir = os.path.join(top_path, "run")
-        if os.path.isdir(run_dir):
-            benchmarks.append((top_dir, run_dir))
-            continue
-
-        children = sorted(
-            os.path.dirname(p)
-            for p in glob.glob(os.path.join(top_path, "*", "Makefile"))
-        )
-        found_child = False
-        for child_path in children:
-            child_run = os.path.join(child_path, "run")
-            if os.path.isdir(child_run):
-                child_name = os.path.basename(child_path)
-                benchmarks.append((f"{top_dir}/{child_name}", child_run))
-                found_child = True
-
-        if not found_child:
-            clean.append(top_dir)
-
-    return benchmarks, clean
 
 
 def parse_status_file(path: str) -> dict:
@@ -346,8 +309,6 @@ def print_table(results: dict) -> None:
     rows: list[tuple[str, dict]] = []
     for benchmark_id in sorted(results):
         entry = results[benchmark_id]
-        if entry.get("status") == "CLEAN":
-            continue
         for combo_key in sorted(entry):
             for flavor in FLAVORS:
                 flavor_result = entry[combo_key].get(flavor)
@@ -377,19 +338,21 @@ def print_table(results: dict) -> None:
 
 
 def main() -> None:
-    root = "."
-    benchmarks, clean = discover_benchmarks(root)
+    parser = argparse.ArgumentParser(
+        description="Print the results already recorded in report.json as a table. "
+        "Does not run or collect anything itself — run 'make run-incremental' first."
+    )
+    parser.add_argument("--report", default="report.json", help="path to report.json")
+    args = parser.parse_args()
 
-    results: dict = {}
-    for benchmark_id, run_dir in benchmarks:
-        results[benchmark_id] = build_benchmark_results(benchmark_id, run_dir)
-    for benchmark_id in clean:
-        results[benchmark_id] = {"status": "CLEAN"}
+    if not os.path.exists(args.report):
+        print(f"{args.report} not found. Run 'make run-incremental' first.")
+        return
 
-    print_table(results)
+    with open(args.report) as f:
+        data = json.load(f)
 
-    with open("results.json", "w") as f:
-        json.dump(results, f, indent=2, default=str)
+    print_table(data.get("results", {}))
 
 
 if __name__ == "__main__":

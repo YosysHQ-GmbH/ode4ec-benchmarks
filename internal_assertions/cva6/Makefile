@@ -44,11 +44,11 @@ openroad-synth: run/$(ORFS_WRAPPER_SYNTH)
 
 eqy: run/$(YOSYS_WRAPPER_SYNTH)
 	ln -sf $(YOSYS_WRAPPER_SYNTH) run/gate_out.il
-	cd run &&	timeout 1800 eqy -f -d check_eqy_yosys ../check.eqy
+	cd run &&	timeout 60 eqy -f -d check_eqy_yosys ../check.eqy
 
 eqy-orfs: run/$(ORFS_WRAPPER_SYNTH)
 	ln -sf $(ORFS_WRAPPER_SYNTH) run/gate_out.il
-	cd run &&	timeout 1800 eqy -f -d check_eqy_orfs ../check.eqy
+	cd run &&	timeout 60 eqy -f -d check_eqy_orfs ../check.eqy
 
 sby: run/$(YOSYS_WRAPPER_SYNTH)
 	ln -sf $(YOSYS_WRAPPER_SYNTH) run/gate_out.il
