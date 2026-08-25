@@ -47,7 +47,10 @@ def synth_target(design_name: str, platform: str = PLATFORM) -> str:
 
 
 def run_orfs_synth(
-    orfs_flow_dir: Path, design_config_mk: Path, design_name: str
+    orfs_flow_dir: Path,
+    design_config_mk: Path,
+    design_name: str,
+    timeout: int | None = None,
 ) -> Path:
     yosys_exe = shutil.which("yosys")
     if yosys_exe is None:
@@ -62,7 +65,7 @@ def run_orfs_synth(
         f"YOSYS_EXE={yosys_exe}",
         target,
     ]
-    result = subprocess.run(command, capture_output=True, text=True)
+    result = subprocess.run(command, capture_output=True, text=True, timeout=timeout)
     if result.returncode != 0:
         raise RuntimeError(
             f"ORFS synthesis failed for {design_config_mk}:\n"

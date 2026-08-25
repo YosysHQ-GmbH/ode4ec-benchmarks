@@ -3,6 +3,7 @@ internal_assertions_frontier_checks/orfs/
 internal_assertions/results.json
 internal_assertions/report.json
 **/run/
+internal_assertions_frontier_checks/summary/
 **/internal_asserts/
 **/openroad/
 !internal_assertions_frontier_checks/*/openroad/

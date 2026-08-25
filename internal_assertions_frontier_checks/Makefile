@@ -1,6 +1,6 @@
 SUBDIRS := $(filter-out _common/ sky130/ orfs/,$(wildcard */))
 
-.PHONY: all clean orfs $(SUBDIRS) $(addsuffix run, $(SUBDIRS))
+.PHONY: all clean orfs summary $(SUBDIRS) $(addsuffix run, $(SUBDIRS))
 
 all: $(SUBDIRS)
 clean: $(addsuffix run, $(SUBDIRS))
@@ -13,3 +13,6 @@ $(addsuffix run, $(SUBDIRS)):
 
 orfs:
 	python3 -c "from pathlib import Path; from _common.orfs import ensure_orfs_checkout; ensure_orfs_checkout(Path('.'))"
+
+summary:
+	uv run _common/summarize.py

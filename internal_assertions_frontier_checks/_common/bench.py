@@ -1,41 +1,58 @@
-import re
+import os
 import shutil
+import signal
 import subprocess
 import sys
+import threading
 from collections import deque
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from time import monotonic
 from typing import TextIO
 
 import polars as pl
 
 from .plots import generate_plots
+from .results_cache import (
+    CELLS_PATTERN,
+    CLOCK_TIME_PATTERN,
+    MARKER_FILES,
+    PROCESS_TIME_PATTERN,
+    RESULT_COLUMNS,
+    prune_task_dir,
+    read_cells_from_stats_file,
+    read_marker,
+    record_result,
+    task_dir_name,
+)
 
 
 @contextmanager
 def atomic_build_dir(final_dir: Path) -> Iterator[Path]:
+    timeout_marker = final_dir.with_name(f".timedout-{final_dir.name}")
+    if timeout_marker.exists():
+        raise RuntimeError(
+            f"build for {final_dir.name} previously hit the hard build "
+            f"timeout and is cached as permanently failed -- delete "
+            f"{timeout_marker} to retry it:\n{timeout_marker.read_text()}"
+        )
+
     scratch_dir = final_dir.with_name(f".build-{final_dir.name}")
     if scratch_dir.exists():
         shutil.rmtree(scratch_dir)
     scratch_dir.mkdir(parents=True)
     try:
         yield scratch_dir
+    except subprocess.TimeoutExpired as exc:
+        shutil.rmtree(scratch_dir, ignore_errors=True)
+        timeout_marker.write_text(f"{exc}\n")
+        raise
     except BaseException:
         shutil.rmtree(scratch_dir, ignore_errors=True)
         raise
     else:
         scratch_dir.rename(final_dir)
-
-
-RESULT_COLUMNS = (
-    "cells",
-    "result",
-    "process_time",
-    "process_secs",
-    "clock_time",
-    "clock_secs",
-)
 
 
 def live_window_stream(stream: TextIO, num_lines: int = 5, indent: int = 1) -> None:
@@ -71,18 +88,10 @@ def live_window_stream(stream: TextIO, num_lines: int = 5, indent: int = 1) -> N
 
 
 class SetupBase:
-    MARKER_FILES = ["PASS", "FAIL", "UNKNOWN", "ERROR", "TIMEOUT", "CANCELLED"]
-    PROCESS_TIME_PATTERN = re.compile(
-        r"^Elapsed process time \[H:MM:SS \(secs\)\]: (\d+:\d+:\d+) \((\d+)\)$",
-        flags=re.MULTILINE,
-    )
-    CLOCK_TIME_PATTERN = re.compile(
-        r"^Elapsed clock time \[H:MM:SS \(secs\)\]: (\d+:\d+:\d+) \((\d+)\)$",
-        flags=re.MULTILINE,
-    )
-    CELLS_PATTERN = re.compile(
-        r"^\s*(\d+)\s+([-+]?\d*\.?\d+(?:[Ee][-+]?\d+)?)\s+cells\s*$"
-    )
+    MARKER_FILES = MARKER_FILES
+    PROCESS_TIME_PATTERN = PROCESS_TIME_PATTERN
+    CLOCK_TIME_PATTERN = CLOCK_TIME_PATTERN
+    CELLS_PATTERN = CELLS_PATTERN
 
     export_dir: Path
     name: str
@@ -92,21 +101,10 @@ class SetupBase:
         return {"name": self.name, **self.params}
 
     def _read_marker_file(self, task: str, sby_file: str) -> dict:
-        for marker in self.MARKER_FILES:
-            marker_path = self.export_dir / f"{sby_file.split('.')[0]}_{task}" / marker
-            if marker_path.exists():
-                content = marker_path.read_text(encoding="utf-8-sig")
-                process_match = self.PROCESS_TIME_PATTERN.search(content)
-                clock_match = self.CLOCK_TIME_PATTERN.search(content)
-                return {
-                    "result": marker,
-                    "process_time": process_match.group(1) if process_match else None,
-                    "process_secs": int(process_match.group(2))
-                    if process_match
-                    else None,
-                    "clock_time": clock_match.group(1) if clock_match else None,
-                    "clock_secs": int(clock_match.group(2)) if clock_match else None,
-                }
+        task_dir = self.export_dir / task_dir_name(task, sby_file)
+        info = read_marker(task_dir)
+        if info is not None:
+            return info
         return {
             "result": "---",
             "process_time": None,
@@ -116,13 +114,7 @@ class SetupBase:
         }
 
     def read_cells_from_stats_file(self) -> int | None:
-        stats_path = self.export_dir / "stat.txt"
-        content = stats_path.read_text(encoding="utf-8-sig")
-        for line in content.split("\n"):
-            m = self.CELLS_PATTERN.match(line)
-            if m:
-                return int(m.group(1))
-        return None
+        return read_cells_from_stats_file(self.export_dir)
 
     def _read_result(self, task: str, sby_file: str) -> dict | None:
         marker_info = self._read_marker_file(task, sby_file)
@@ -134,10 +126,29 @@ class SetupBase:
             **marker_info,
         }
 
+    def _write_hard_timeout_marker(
+        self, task: str, sby_file: str, elapsed: int, reason: str
+    ) -> dict:
+        task_dir = self.export_dir / task_dir_name(task, sby_file)
+        task_dir.mkdir(parents=True, exist_ok=True)
+        marker_path = task_dir / "HARDTIMEOUT"
+        if not marker_path.exists():
+            h, rem = divmod(elapsed, 3600)
+            m, s = divmod(rem, 60)
+            marker_path.write_text(
+                f"Elapsed clock time [H:MM:SS (secs)]: {h}:{m:02d}:{s:02d} "
+                f"({elapsed})\n"
+                f"{reason}\n"
+            )
+        return self._read_result(task, sby_file)
+
     def run_task(self, task: str, sby_file: str) -> dict:
         cached = self._read_result(task, sby_file)
         if cached is not None:
             return cached
+
+        timeout = self.params.get("timeout")
+        hard_timeout = 2 * timeout if timeout else None
 
         command = ["sby", "-j", "4", "--statuscancels", "-f", sby_file, task]
         process = subprocess.Popen(
@@ -145,16 +156,73 @@ class SetupBase:
             cwd=self.export_dir,
             stdout=subprocess.PIPE,
             text=True,
+            start_new_session=True,
         )
 
-        live_window_stream(process.stdout, num_lines=10)
-        process.wait()
+        hard_killed = False
+
+        def _kill_on_hard_timeout() -> None:
+            nonlocal hard_killed
+            hard_killed = True
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                pass
+
+        timer = None
+        if hard_timeout is not None:
+            timer = threading.Timer(hard_timeout, _kill_on_hard_timeout)
+            timer.daemon = True
+            timer.start()
+
+        start_clock = monotonic()
+        try:
+            live_window_stream(process.stdout, num_lines=10)
+            process.wait()
+        finally:
+            if timer is not None:
+                timer.cancel()
+        elapsed = int(monotonic() - start_clock)
 
         result = self._read_result(task, sby_file)
+        if result is None:
+            if hard_killed:
+                reason = (
+                    "sby was force-killed after this hard wall-clock limit "
+                    "(2x the configured per-engine timeout) without producing "
+                    "a result marker of its own -- it was most likely still "
+                    "stuck in the synthesis/prep script phase, which sby's own "
+                    "'timeout' option does not bound."
+                )
+            else:
+                reason = (
+                    f"sby exited on its own (return code {process.returncode}) "
+                    "without producing a result marker. This is a known "
+                    "upstream sby bug: when sby's own 'timeout' fires while "
+                    "still in the synthesis/prep phase (before the design "
+                    "model is built), its terminate() path crashes with "
+                    "'AttributeError: NoneType object has no attribute "
+                    "hierarchy' in update_unknown_props(), and sby exits "
+                    "without writing any marker."
+                )
+            result = self._write_hard_timeout_marker(task, sby_file, elapsed, reason)
         assert result is not None, (
             f"sby produced no result marker for {task}/{sby_file} in {self.export_dir}"
         )
         return result
+
+    def finalize_task(self, task: str, sby_file: str, result: dict | None) -> None:
+        if result is None:
+            return
+        record_result(
+            self.export_dir.parent,
+            self.export_dir.name,
+            task,
+            sby_file,
+            result,
+            params=self.params,
+        )
+        prune_task_dir(self.export_dir, task, sby_file)
 
 
 def tasks_in(content: str) -> set[str]:
@@ -196,6 +264,7 @@ def run_benchmark(
 
     for task in tasks:
         visited_setups: dict[int, dict] = {}
+        visited_instances: dict[int, SetupBase] = {}
         visited_miter: dict[int, dict] = {}
         visited_internal_asserts: dict[int, dict] = {}
 
@@ -220,6 +289,7 @@ def run_benchmark(
                     }
                     return False
                 visited_setups[n] = setup.row()
+                visited_instances[n] = setup
                 print(f"Running: {label} {task} {setup.name}")
                 row = setup.run_task(task, sby_file)
                 sink[n] = row
@@ -236,6 +306,12 @@ def run_benchmark(
         frontiers_internal_asserts[task] = find_frontier(
             run_internal_asserts, start=start, min_n=min_n
         )
+
+        for n, setup in visited_instances.items():
+            setup.finalize_task(task, "miter.sby", visited_miter.get(n))
+            setup.finalize_task(
+                task, "miter_extra_asserts.sby", visited_internal_asserts.get(n)
+            )
 
         all_n = sorted(visited_setups)
         setup_rows = [{"step": i, **visited_setups[n]} for i, n in enumerate(all_n)]
