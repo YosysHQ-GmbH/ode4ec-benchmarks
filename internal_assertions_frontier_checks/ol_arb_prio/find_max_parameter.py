@@ -73,6 +73,7 @@ class Setup(SetupBase):
         self.params = {"WIDTH": WIDTH, "LATENCY": LATENCY, "timeout": timeout}
         self.name = f"W{WIDTH}_L{LATENCY}_T{timeout}"
         self.export_dir = run_dir / self.name
+        hard_timeout = 2 * timeout
 
         if not self.export_dir.exists():
             with atomic_build_dir(self.export_dir) as build:
@@ -81,7 +82,11 @@ class Setup(SetupBase):
                 )
                 command = ["yosys", "-m", "ghdl", "-c", "gold_prepare.tcl"]
                 result = subprocess.run(
-                    command, cwd=build, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.returncode != 0:
                     raise RuntimeError(
@@ -94,7 +99,11 @@ class Setup(SetupBase):
                 )
                 command = ["yosys", "-m", "ghdl", "-c", "synth.tcl"]
                 result = subprocess.run(
-                    command, cwd=build, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.returncode != 0:
                     raise RuntimeError(
@@ -122,6 +131,7 @@ class OrfsSetup(SetupBase):
         self.params = {"WIDTH": WIDTH, "LATENCY": LATENCY, "timeout": timeout}
         self.name = f"W{WIDTH}_L{LATENCY}_T{timeout}"
         self.export_dir = run_dir / f"orfs_{self.name}"
+        hard_timeout = 2 * timeout
         design_name = f"olo_base_arb_prio_{self.name}"
 
         if not self.export_dir.exists():
@@ -131,7 +141,11 @@ class OrfsSetup(SetupBase):
                 )
                 command = ["yosys", "-m", "ghdl", "-c", "gold_prepare.tcl"]
                 result = subprocess.run(
-                    command, cwd=build, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.returncode != 0:
                     raise RuntimeError(
@@ -153,7 +167,12 @@ class OrfsSetup(SetupBase):
                 }
                 command = ["yosys", "-m", "ghdl", "-c", "pre_synth.tcl"]
                 result = subprocess.run(
-                    command, cwd=build, env=env, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.returncode != 0:
                     raise RuntimeError(
@@ -171,7 +190,10 @@ class OrfsSetup(SetupBase):
                 config_mk_path.write_text(config_mk)
 
                 orfs_netlist = run_orfs_synth(
-                    orfs_flow_dir, config_mk_path.resolve(), design_name
+                    orfs_flow_dir,
+                    config_mk_path.resolve(),
+                    design_name,
+                    timeout=hard_timeout,
                 )
 
                 env = {
@@ -183,7 +205,12 @@ class OrfsSetup(SetupBase):
                 }
                 command = ["yosys", "-c", str(post_synth_file.resolve())]
                 result = subprocess.run(
-                    command, cwd=build, env=env, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.returncode != 0:
                     raise RuntimeError(

@@ -46,7 +46,7 @@ INTERNAL_ASSERTS_SBY_TEMPLATE = internal_assert_file.read_text()
 TASKS = parse_tasks(TASKS_SBY_TEMPLATE)
 
 
-def _generate_rtl(name: str, count: int, build: Path) -> None:
+def _generate_rtl(name: str, count: int, build: Path, hard_timeout: int) -> None:
     gen_src_dir = build / "gen_src"
     gen_build_dir = build / "gen_build"
     shutil.copytree(src_dir, gen_src_dir)
@@ -68,7 +68,9 @@ def _generate_rtl(name: str, count: int, build: Path) -> None:
         "--setup",
         "corescore",
     ]
-    result = subprocess.run(command, cwd=gen_src_dir, capture_output=True, text=True)
+    result = subprocess.run(
+        command, cwd=gen_src_dir, capture_output=True, text=True, timeout=hard_timeout
+    )
     if result.returncode != 0:
         raise RuntimeError(f"fusesoc failed for {name}:\n{result.stderr}")
 
@@ -109,10 +111,11 @@ class Setup(SetupBase):
         self.params = {"count": count, "timeout": timeout}
         self.name = f"C{count}_T{timeout}"
         self.export_dir = run_dir / self.name
+        hard_timeout = 2 * timeout
 
         if not self.export_dir.exists():
             with atomic_build_dir(self.export_dir) as build:
-                _generate_rtl(self.name, count, build)
+                _generate_rtl(self.name, count, build, hard_timeout)
 
                 # Copy Files
                 _copy_tcl_fixing_flist(gold_prep_file, build)
@@ -122,7 +125,11 @@ class Setup(SetupBase):
                 # Gold Prep
                 command = ["yosys", "-m", "slang", "-c", gold_prep_file]
                 result = subprocess.run(
-                    command, cwd=build, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.stderr:
                     raise RuntimeError(
@@ -132,7 +139,11 @@ class Setup(SetupBase):
                 # Gate Synth
                 command = ["yosys", "-m", "slang", "-c", gate_synth_file]
                 result = subprocess.run(
-                    command, cwd=build, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.stderr:
                     raise RuntimeError(
@@ -158,11 +169,12 @@ class OrfsSetup(SetupBase):
         self.params = {"count": count, "timeout": timeout}
         self.name = f"C{count}_T{timeout}"
         self.export_dir = run_dir / f"orfs_{self.name}"
+        hard_timeout = 2 * timeout
         design_name = f"corescore_{self.name}"
 
         if not self.export_dir.exists():
             with atomic_build_dir(self.export_dir) as build:
-                _generate_rtl(self.name, count, build)
+                _generate_rtl(self.name, count, build, hard_timeout)
 
                 shutil.copy2(gold_prep_file, build / gold_prep_file)
                 _copy_tcl_fixing_flist(gold_prep_file, build)
@@ -170,7 +182,11 @@ class OrfsSetup(SetupBase):
                 # Gold Prep (same as the yosys flavor)
                 command = ["yosys", "-m", "slang", "-c", gold_prep_file]
                 result = subprocess.run(
-                    command, cwd=build, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.stderr:
                     raise RuntimeError(
@@ -189,7 +205,12 @@ class OrfsSetup(SetupBase):
                 }
                 command = ["yosys", "-m", "slang", "-c", str(pre_synth_file.resolve())]
                 result = subprocess.run(
-                    command, cwd=build, env=env, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.returncode != 0:
                     raise RuntimeError(
@@ -207,7 +228,10 @@ class OrfsSetup(SetupBase):
                 config_mk_path.write_text(config_mk)
 
                 orfs_netlist = run_orfs_synth(
-                    orfs_flow_dir, config_mk_path.resolve(), design_name
+                    orfs_flow_dir,
+                    config_mk_path.resolve(),
+                    design_name,
+                    timeout=hard_timeout,
                 )
 
                 env = {
@@ -220,7 +244,12 @@ class OrfsSetup(SetupBase):
                 }
                 command = ["yosys", "-c", str(post_synth_file.resolve())]
                 result = subprocess.run(
-                    command, cwd=build, env=env, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.returncode != 0:
                     raise RuntimeError(
