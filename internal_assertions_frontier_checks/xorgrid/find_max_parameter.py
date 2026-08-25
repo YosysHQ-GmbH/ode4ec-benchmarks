@@ -74,6 +74,7 @@ class Setup(SetupBase):
         }
         self.name = f"I{I}_O{O}_C{C}_W{W}_H{H}_F{F}_N{N}_D{D}_S{S}_T{timeout}"
         self.export_dir = run_dir / self.name
+        hard_timeout = 2 * timeout
 
         if not self.export_dir.exists():
             with atomic_build_dir(self.export_dir) as build:
@@ -103,7 +104,9 @@ class Setup(SetupBase):
                     "-S",
                     f"{S}",
                 ]
-                result = subprocess.run(command, capture_output=True, text=True)
+                result = subprocess.run(
+                    command, capture_output=True, text=True, timeout=hard_timeout
+                )
                 if result.stderr:
                     raise RuntimeError(
                         f"xorgrid.py failed for {self.name}:\n{result.stderr}"
@@ -120,7 +123,11 @@ class Setup(SetupBase):
                 # Gold Prep
                 command = ["yosys", "-m", "slang", "-c", gold_prep_file]
                 result = subprocess.run(
-                    command, cwd=build, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.stderr:
                     raise RuntimeError(
@@ -130,7 +137,11 @@ class Setup(SetupBase):
                 # Gate Synth
                 command = ["yosys", "-m", "slang", "-c", gate_synth_file]
                 result = subprocess.run(
-                    command, cwd=build, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.stderr:
                     raise RuntimeError(
@@ -179,6 +190,7 @@ class OrfsSetup(SetupBase):
         }
         self.name = f"I{I}_O{O}_C{C}_W{W}_H{H}_F{F}_N{N}_D{D}_S{S}_T{timeout}"
         self.export_dir = run_dir / f"orfs_{self.name}"
+        hard_timeout = 2 * timeout
         design_name = f"xorgrid_{self.name}"
 
         if not self.export_dir.exists():
@@ -209,7 +221,9 @@ class OrfsSetup(SetupBase):
                     "-S",
                     f"{S}",
                 ]
-                result = subprocess.run(command, capture_output=True, text=True)
+                result = subprocess.run(
+                    command, capture_output=True, text=True, timeout=hard_timeout
+                )
                 if result.stderr:
                     raise RuntimeError(
                         f"xorgrid.py failed for {self.name}:\n{result.stderr}"
@@ -223,7 +237,11 @@ class OrfsSetup(SetupBase):
                 # Gold Prep (same as the yosys flavor)
                 command = ["yosys", "-m", "slang", "-c", gold_prep_file]
                 result = subprocess.run(
-                    command, cwd=build, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.stderr:
                     raise RuntimeError(
@@ -243,7 +261,12 @@ class OrfsSetup(SetupBase):
                 }
                 command = ["yosys", "-m", "slang", "-c", str(pre_synth_file.resolve())]
                 result = subprocess.run(
-                    command, cwd=build, env=env, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.returncode != 0:
                     raise RuntimeError(
@@ -261,7 +284,10 @@ class OrfsSetup(SetupBase):
                 config_mk_path.write_text(config_mk)
 
                 orfs_netlist = run_orfs_synth(
-                    orfs_flow_dir, config_mk_path.resolve(), design_name
+                    orfs_flow_dir,
+                    config_mk_path.resolve(),
+                    design_name,
+                    timeout=hard_timeout,
                 )
 
                 env = {
@@ -274,7 +300,12 @@ class OrfsSetup(SetupBase):
                 }
                 command = ["yosys", "-c", str(post_synth_file.resolve())]
                 result = subprocess.run(
-                    command, cwd=build, env=env, capture_output=True, text=True
+                    command,
+                    cwd=build,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=hard_timeout,
                 )
                 if result.returncode != 0:
                     raise RuntimeError(
