@@ -1,0 +1,35 @@
+yosys -import
+
+set instance_name  $::env(DESIGN_INSTANCE_NAME)
+set pre_synth_v    $::env(PRE_SYNTH_V)
+
+plugin -i ghdl
+ghdl --std=08 -frelaxed -gGrantWidth_g=@GRANT@ -gWeightWidth_g=@WIDTH@ -gLatency_g=1 \
+    ../../src/olo_base_pkg_array.vhd \
+    ../../src/olo_base_pkg_attribute.vhd \
+    ../../src/olo_base_pkg_math.vhd \
+    ../../src/olo_base_pkg_logic.vhd \
+    ../../src/olo_base_pkg_string.vhd \
+    ../../src/olo_base_cc_reset.vhd \
+    ../../src/olo_base_cc_bits.vhd \
+    ../../src/olo_base_ram_sdp.vhd \
+    ../../src/olo_base_arb_prio.vhd \
+    ../../src/olo_base_arb_rr.vhd \
+    ../../src/olo_base_arb_wrr.vhd \
+    -e olo_base_arb_wrr
+
+hierarchy -top olo_base_arb_wrr
+chformal -remove
+
+flatten
+opt_clean -purge
+
+simplemap {t:$bwmux}
+opt_clean -purge
+
+# ORFS keys its flow off DESIGN_NAME in config.mk, which must be unique per
+# GRANT/WIDTH and so differs from the fixed entity name olo_base_arb_wrr;
+# rename to that instance name before handing off to ORFS.
+yosys rename olo_base_arb_wrr ${instance_name}
+
+write_verilog -noattr ${pre_synth_v}
