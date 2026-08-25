@@ -1,0 +1,23 @@
+yosys -import
+
+plugin -i ghdl
+ghdl --std=08 -frelaxed -gWidth_g=@WIDTH@ -gStages_g=@STAGE@ -gUseReady_g=true \
+    ../../src/olo_base_pkg_array.vhd \
+    ../../src/olo_base_pkg_attribute.vhd \
+    ../../src/olo_base_pkg_math.vhd \
+    ../../src/olo_base_pkg_logic.vhd \
+    ../../src/olo_base_pkg_string.vhd \
+    ../../src/olo_base_cc_reset.vhd \
+    ../../src/olo_base_cc_bits.vhd \
+    ../../src/olo_base_ram_sdp.vhd \
+    ../../src/olo_base_pl_stage.vhd \
+    -e olo_base_pl_stage
+
+hierarchy -check -top olo_base_pl_stage
+memory_map -formal
+flatten
+opt_clean -purge
+chformal -assert -remove
+yosys rename olo_base_pl_stage gold_top
+flatten
+write_rtlil gold.il
