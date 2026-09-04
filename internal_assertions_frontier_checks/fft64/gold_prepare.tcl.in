@@ -1,0 +1,19 @@
+yosys -import
+
+plugin -i slang
+read_slang --top FFT -G WIDTH=@WIDTH@ \
+    ../../src/FFT64.v \
+    ../../src/SdfUnit.v \
+    ../../src/Butterfly.v \
+    ../../src/DelayBuffer.v \
+    ../../src/Multiply.v \
+    ../../src/Twiddle64.v
+
+hierarchy -check -top FFT
+memory_map -formal
+flatten
+opt_clean -purge
+chformal -assert -remove
+yosys rename FFT gold_top
+flatten
+write_rtlil gold.il

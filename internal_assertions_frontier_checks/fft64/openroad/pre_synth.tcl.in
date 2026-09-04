@@ -1,0 +1,26 @@
+yosys -import
+
+set instance_name  $::env(DESIGN_INSTANCE_NAME)
+set pre_synth_v    $::env(PRE_SYNTH_V)
+
+plugin -i slang
+read_slang --top FFT -G WIDTH=@WIDTH@ \
+    ../../src/FFT64.v \
+    ../../src/SdfUnit.v \
+    ../../src/Butterfly.v \
+    ../../src/DelayBuffer.v \
+    ../../src/Multiply.v \
+    ../../src/Twiddle64.v
+
+hierarchy -top FFT
+chformal -remove
+
+flatten
+opt_clean -purge
+
+# ORFS keys its flow off DESIGN_NAME in config.mk, which must be unique per
+# WIDTH and so differs from the fixed module name FFT; rename to that
+# instance name before handing off to ORFS.
+yosys rename FFT ${instance_name}
+
+write_verilog -noattr ${pre_synth_v}
