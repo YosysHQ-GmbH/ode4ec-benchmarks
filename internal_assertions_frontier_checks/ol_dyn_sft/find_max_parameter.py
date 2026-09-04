@@ -17,6 +17,7 @@ from _common.bench import (
     Benchmark,
     SetupBase,
     atomic_build_dir,
+    load_tasks_sby_template,
     parse_tasks,
     run_and_report,
 )
@@ -31,7 +32,6 @@ gate_synth_file = Path("synth.tcl.in")
 miter_file = Path("miter.v")
 internal_assert_file = Path("miter_extra_asserts.sby.in")
 miter_sby_file = Path("miter.sby.in")
-tasks_sby_file = Path("tasks.sby.in")
 
 pre_synth_template_file = Path("openroad/pre_synth.tcl.in")
 post_synth_file = Path("openroad/post_synth.tcl")
@@ -39,7 +39,7 @@ config_mk_template_file = Path("openroad/config.mk.in")
 constraint_sdc_file = Path("openroad/constraint.sdc")
 timing_lib_file = Path("sky130/sky130_fd_sc_hd__tt_025C_1v80.lib")
 
-TASKS_SBY_TEMPLATE = tasks_sby_file.read_text()
+TASKS_SBY_TEMPLATE = load_tasks_sby_template(Path(__file__).resolve().parent)
 MITER_SBY_TEMPLATE = miter_sby_file.read_text()
 INTERNAL_ASSERTS_SBY_TEMPLATE = internal_assert_file.read_text()
 GOLD_PREP_TEMPLATE = gold_prep_file.read_text()
@@ -245,18 +245,18 @@ def main() -> None:
     FIXED_MAX = 4
 
     benchmarks: list[Benchmark] = [
-        ("Width Scaling", lambda n: Setup(n, FIXED_MAX, 300), TASKS, 8, FIXED_MAX),
-        ("MaxShift Scaling", lambda n: Setup(2 * n, n, 300), TASKS, 8),
+        ("Width Scaling", lambda n: Setup(n, FIXED_MAX, 30), TASKS, FIXED_MAX, FIXED_MAX),
+        ("MaxShift Scaling", lambda n: Setup(2 * n, n, 30), TASKS, 8),
         (
             "Width Scaling (ORFS)",
-            lambda n: OrfsSetup(n, FIXED_MAX, 300),
+            lambda n: OrfsSetup(n, FIXED_MAX, 30),
             TASKS,
-            8,
+            FIXED_MAX,
             FIXED_MAX,
         ),
         (
             "MaxShift Scaling (ORFS)",
-            lambda n: OrfsSetup(2 * n, n, 300),
+            lambda n: OrfsSetup(2 * n, n, 30),
             TASKS,
             8,
         ),
