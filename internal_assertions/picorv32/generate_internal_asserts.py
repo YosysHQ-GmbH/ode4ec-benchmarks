@@ -234,6 +234,7 @@ def main() -> None:
     args = parser.parse_args()
 
     OUT_FOLDER = Path("internal_asserts")
+    OUT_FOLDER.mkdir(parents=True, exist_ok=True)
 
     out_expose_ys = OUT_FOLDER / f"expose_{args.backend}.ys"
     out_decls_vh = OUT_FOLDER / f"decls_{args.backend}.vh"

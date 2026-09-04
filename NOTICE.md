@@ -22,6 +22,8 @@ are authoritative for that file. This document is a summary index, and
 | `dblclockfft` | dblclockfft (pipelined FFT) | https://github.com/ZipCPU/dblclockfft | LGPL-3.0 (or later) — [licenses/LGPL-3.0.txt](licenses/LGPL-3.0.txt) |
 | `corescore` (wrapper RTL: `base.v`, `emitter*.v`, `axis2wb.v`, `wb2axis.v`, `corescore_de10_nano.v`, `de0_nano_clock_gen.v`) | corescore | https://github.com/olofk/corescore | Apache-2.0 — [licenses/Apache-2.0.txt](licenses/Apache-2.0.txt) |
 | `sky130` (both suites) | SkyWater Open Source PDK (`sky130_fd_sc_hd`) | https://github.com/google/skywater-pdk | Apache-2.0 — [licenses/Apache-2.0.txt](licenses/Apache-2.0.txt) |
+| `fft64` (frontier suite) | r22sdf (pipelined FFT), also wrapped by [yosys-perf](https://github.com/YosysHQ/yosys-perf)'s `fft64`/`fft1024` benchmark | https://github.com/nanamake/r22sdf | MIT — [licenses/MIT.txt](licenses/MIT.txt) |
+| `jpeg` | JPEG Encoder Unit (OpenCores "Video Compression Systems Project"), also wrapped by OpenROAD-flow-scripts' `flow/designs/src/jpeg/` and by [yosys-perf](https://github.com/YosysHQ/yosys-perf)'s `scripts/jpeg.py` benchmark | https://opencores.org/projects/video_systems | Permissive "as-is" notice (ASICs World Services + Richard Herveille) — [licenses/OpenCores-JPEG-Encoder.txt](licenses/OpenCores-JPEG-Encoder.txt) |
 | `cva6` (referenced, not vendored — see note below) | CVA6 | https://github.com/openhwgroup/cva6 | Solderpad Hardware License (Apache-2.0-derived) |
 
 `xorgrid` (frontier suite) is fully original — a synthetic design generator
