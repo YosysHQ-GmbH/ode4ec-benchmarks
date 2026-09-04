@@ -14,10 +14,33 @@ import polars as pl
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from _common.bench import SHARED_TASKS_SBY, tasks_in
 from _common.plots import generate_cross_benchmark_plots
 from _common.results_cache import RESULT_COLUMNS, split_task_dir_name
 
 NON_BENCHMARK_DIRS = {"_common", "sky130", "orfs", "summary"}
+
+
+def active_tasks() -> set[str]:
+    return tasks_in(SHARED_TASKS_SBY.read_text())
+
+
+def filter_to_active_tasks(results: pl.DataFrame) -> pl.DataFrame:
+    active = active_tasks()
+    present = set(results["task"].unique().to_list())
+    dropped = sorted(present - active)
+    if dropped:
+        print(
+            f"excluding tasks commented out in {SHARED_TASKS_SBY.name}: "
+            f"{', '.join(dropped)}"
+        )
+    filtered = results.filter(pl.col("task").is_in(active))
+    if filtered.is_empty():
+        raise SystemExit(
+            f"no results left after filtering to the active tasks in "
+            f"{SHARED_TASKS_SBY.name} ({', '.join(sorted(active)) or 'none'})"
+        )
+    return filtered
 
 
 def _load_partial_from_cache(bench_dir: Path) -> pl.DataFrame | None:
@@ -120,7 +143,7 @@ def main() -> None:
     out_dir = args.out or (root / "summary")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    results = collect_results(root)
+    results = filter_to_active_tasks(collect_results(root))
     results.write_parquet(out_dir / "results.parquet")
     results.write_csv(out_dir / "results.csv")
     n_benchmarks = results["benchmark_dir"].n_unique()

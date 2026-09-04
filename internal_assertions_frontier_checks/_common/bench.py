@@ -242,7 +242,78 @@ def parse_tasks(content: str) -> list[str]:
     return sorted(tasks_in(content))
 
 
-def find_frontier(run: Callable[[int], bool], start: int = 8, min_n: int = 1) -> int:
+SHARED_TASKS_SBY = Path(__file__).resolve().parent / "tasks.sby.in"
+
+
+def _trim_blank(lines: list[str]) -> list[str]:
+    start, end = 0, len(lines)
+    while start < end and not lines[start].strip():
+        start += 1
+    while end > start and not lines[end - 1].strip():
+        end -= 1
+    return lines[start:end]
+
+
+def _split_sby_sections(text: str) -> list[tuple[str, list[str]]]:
+    sections: list[tuple[str, list[str]]] = [("", [])]
+    for line in text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("[") and stripped.endswith("]"):
+            sections.append((stripped, []))
+        else:
+            sections[-1][1].append(line)
+    return [(header, _trim_blank(body)) for header, body in sections]
+
+
+def merge_sby_config(base: str, override: str) -> str:
+    merged: list[tuple[str, list[str]]] = [
+        (header, list(body)) for header, body in _split_sby_sections(base)
+    ]
+    index = {header: i for i, (header, _) in enumerate(merged)}
+    for header, body in _split_sby_sections(override):
+        if not body:
+            continue
+        if header in index:
+            target = merged[index[header]][1]
+            if target:
+                target.append("")
+            target.extend(body)
+        else:
+            index[header] = len(merged)
+            merged.append((header, list(body)))
+    out: list[str] = []
+    for header, body in merged:
+        if not header and not body:
+            continue
+        if out:
+            out.append("")
+        if header:
+            out.append(header)
+        out.extend(body)
+    return "\n".join(out) + "\n"
+
+
+def load_tasks_sby_template(benchmark_dir: Path) -> str:
+    base = SHARED_TASKS_SBY.read_text()
+    override = benchmark_dir / "tasks.sby.in"
+    if override.exists():
+        return merge_sby_config(base, override.read_text())
+    return base
+
+
+def find_frontier(
+    run: Callable[[int], bool],
+    start: int = 8,
+    min_n: int = 1,
+    step: int | None = None,
+) -> int:
+    if step is not None:
+        lo = min_n - 1
+        n = start
+        while run(n):
+            lo = n
+            n += step
+        return lo
     lo, hi = min_n - 1, start
     while run(hi):
         lo, hi = hi, hi * 2
@@ -257,6 +328,7 @@ def run_benchmark(
     tasks: list[str],
     start: int = 8,
     min_n: int = 1,
+    step: int | None = None,
 ) -> dict[str, pl.DataFrame]:
     task_frames: dict[str, pl.DataFrame] = {}
     frontiers_miter: dict[str, int] = {}
@@ -302,9 +374,11 @@ def run_benchmark(
             "IA", "miter_extra_asserts.sby", visited_internal_asserts
         )
 
-        frontiers_miter[task] = find_frontier(run_miter, start=start, min_n=min_n)
+        frontiers_miter[task] = find_frontier(
+            run_miter, start=start, min_n=min_n, step=step
+        )
         frontiers_internal_asserts[task] = find_frontier(
-            run_internal_asserts, start=start, min_n=min_n
+            run_internal_asserts, start=start, min_n=min_n, step=step
         )
 
         for n, setup in visited_instances.items():
@@ -348,6 +422,7 @@ def run_benchmark(
 Benchmark = (
     tuple[str, Callable[[int], SetupBase], list[str], int]
     | tuple[str, Callable[[int], SetupBase], list[str], int, int]
+    | tuple[str, Callable[[int], SetupBase], list[str], int, int, int]
 )
 
 
@@ -361,8 +436,11 @@ def run_and_report(benchmarks: list[Benchmark], run_dir: Path) -> None:
     for benchmark in benchmarks:
         name, setup_gen, tasks, start, *rest = benchmark
         min_n = rest[0] if rest else 1
+        step = rest[1] if len(rest) > 1 else None
         print(f"=== {name} ===")
-        task_frames = run_benchmark(setup_gen, tasks, start=start, min_n=min_n)
+        task_frames = run_benchmark(
+            setup_gen, tasks, start=start, min_n=min_n, step=step
+        )
         for task, df in task_frames.items():
             all_frames.append(
                 df.with_columns(

@@ -1,4 +1,4 @@
-import re
+import math
 from pathlib import Path
 
 import matplotlib
@@ -6,8 +6,15 @@ import matplotlib
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+import numpy as np
 import polars as pl
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
+
+VARIANT_LABELS = {
+    "miter": "Plain miter (MI)",
+    "internal_asserts": "Internal asserts (IA)",
+}
 
 SURFACE = "#fcfcfb"
 INK = "#0b0b0b"
@@ -15,19 +22,12 @@ INK_SECONDARY = "#52514e"
 MUTED = "#898781"
 GRID = "#e1e0d9"
 AXIS = "#c3c2b7"
+NODATA = "#eceae1"
 
 COLOR_MITER = "#2a78d6"
 COLOR_INTERNAL_ASSERTS = "#eb6834"
 
-VARIANT_LABELS = {
-    "miter": "Plain miter (MI)",
-    "internal_asserts": "Internal asserts (IA)",
-}
-VARIANT_COLORS = {"miter": COLOR_MITER, "internal_asserts": COLOR_INTERNAL_ASSERTS}
-
-
-def _slugify(name: str) -> str:
-    return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
+TIE_RATIO = 1.05
 
 
 def _apply_chrome(fig: plt.Figure, ax: plt.Axes) -> None:
@@ -53,192 +53,282 @@ def _max_solved_cells(
     )
 
 
-def _categorical_colors(labels: list[str]) -> dict[str, tuple]:
-    validated_slots = [
-        "#2a78d6",  # blue
-        "#eb6834",  # orange
-        "#1baf7a",  # aqua
-        "#eda100",  # yellow
-        "#e87ba4",  # magenta
-        "#008300",  # green
-        "#4a3aa7",  # violet
-        "#e34948",  # red
-    ]
-    overflow_cmap = plt.get_cmap("tab20")
-    colors: dict[str, tuple] = {}
-    for i, label in enumerate(labels):
-        if i < len(validated_slots):
-            colors[label] = validated_slots[i]
-        else:
-            colors[label] = overflow_cmap((i - len(validated_slots)) % overflow_cmap.N)
-    return colors
+def _facet_layout(n: int) -> tuple[int, int]:
+    if n <= 0:
+        return (1, 1)
+    ncols = min(max(math.ceil(math.sqrt(n)), 1), 5)
+    nrows = math.ceil(n / ncols)
+    return nrows, ncols
 
 
-def _plot_cell_diff_bar(
-    results: pl.DataFrame,
-    out_path: Path,
-    group_col: str = "benchmark",
-    legend_title: str = "Benchmark",
-    title_suffix: str = "(all benchmarks)",
-) -> Path | None:
-    benchmark_order = results[group_col].unique(maintain_order=True).to_list()
+def _facet_grid(
+    n: int,
+    panel_w: float = 3.4,
+    panel_h: float = 3.0,
+    sharex: bool = True,
+    sharey: bool = True,
+) -> tuple[plt.Figure, list[plt.Axes], list[plt.Axes]]:
+    nrows, ncols = _facet_layout(n)
+    fig, axes = plt.subplots(
+        nrows,
+        ncols,
+        figsize=(panel_w * ncols, panel_h * nrows),
+        sharex=sharex,
+        sharey=sharey,
+        squeeze=False,
+    )
+    flat = list(axes.flatten())
+    used, spare = flat[:n], flat[n:]
+    for ax in spare:
+        ax.axis("off")
+    return fig, used, spare
 
+
+def _place_legend(
+    fig: plt.Figure, spare: list[plt.Axes], handles: list, **kwargs
+) -> None:
+    common = dict(frameon=False, labelcolor=INK_SECONDARY, fontsize=9)
+    common.update(kwargs)
+    if spare:
+        spare[0].legend(handles=handles, loc="center", **common)
+    else:
+        fig.legend(
+            handles=handles,
+            loc="lower center",
+            ncols=len(handles),
+            bbox_to_anchor=(0.5, -0.035),
+            **common,
+        )
+
+
+def _mi_ia_points(results: pl.DataFrame, group_col: str) -> pl.DataFrame:
     mi = _max_solved_cells(results, "miter", group_col=group_col)
     ia = _max_solved_cells(results, "internal_asserts", group_col=group_col)
-    joined = mi.join(ia, on=[group_col, "task"], how="inner").filter(
-        pl.col("max_cells_miter") > 0
+    return (
+        mi.join(ia, on=[group_col, "task"], how="full", coalesce=True)
+        .with_columns(
+            pl.col("max_cells_miter").fill_null(0),
+            pl.col("max_cells_internal_asserts").fill_null(0),
+        )
+        .filter(
+            (pl.col("max_cells_miter") > 0) | (pl.col("max_cells_internal_asserts") > 0)
+        )
     )
-    if joined.is_empty():
+
+
+def _win_loss_masks(
+    mi: np.ndarray, ia: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    better = ia > mi * TIE_RATIO
+    worse = ia * TIE_RATIO < mi
+    return (~better) & (~worse), better, worse
+
+
+def _geomean_max_cells(
+    results: pl.DataFrame, variant: str, group_col: str
+) -> pl.DataFrame:
+    keys = list(dict.fromkeys([group_col, "task", "benchmark"]))
+    per_axis = (
+        results.filter(pl.col(f"result_{variant}") == "PASS")
+        .group_by(*keys)
+        .agg(pl.col(f"cells_{variant}").max().alias("m"))
+        .filter(pl.col("m") > 0)
+    )
+    return per_axis.group_by(group_col, "task").agg(
+        pl.col("m").log().mean().exp().alias(f"geo_cells_{variant}")
+    )
+
+
+def _plot_task_design_bars(
+    results: pl.DataFrame,
+    out_path: Path,
+    group_col: str = "benchmark_dir",
+    title_suffix: str = "(all benchmarks)",
+) -> Path | None:
+    mi = _geomean_max_cells(results, "miter", group_col)
+    ia = _geomean_max_cells(results, "internal_asserts", group_col)
+    data = mi.join(ia, on=[group_col, "task"], how="full", coalesce=True).with_columns(
+        pl.col("geo_cells_miter").fill_null(0.0),
+        pl.col("geo_cells_internal_asserts").fill_null(0.0),
+    )
+    if data.is_empty():
         return None
 
-    joined = joined.with_columns(
-        (
-            (pl.col("max_cells_internal_asserts") - pl.col("max_cells_miter"))
-            / pl.col("max_cells_miter")
-            * 100
-        ).alias("pct_diff")
-    )
-
-    present = set(joined[group_col].unique().to_list())
-    benchmarks = [b for b in benchmark_order if b in present]
-    colors = _categorical_colors(benchmarks)
-
-    task_order = (
-        joined.group_by("task")
-        .agg(pl.col("pct_diff").mean().alias("mean_diff"))
-        .sort("mean_diff")["task"]
+    tasks = sorted(data["task"].unique().to_list())
+    order = (
+        data.group_by(group_col)
+        .agg(
+            pl.max_horizontal("geo_cells_miter", "geo_cells_internal_asserts")
+            .max()
+            .alias("k")
+        )
+        .sort("k", descending=True)[group_col]
         .to_list()
     )
-    task_index = {task: i for i, task in enumerate(task_order)}
+    x = np.arange(len(order))
 
-    n_benchmarks = len(benchmarks)
-    group_height = 0.8
-    bar_height = group_height / n_benchmarks
-    span = max(joined["pct_diff"].abs().max(), 1)
-
-    fig, ax = plt.subplots(figsize=(11, max(3.5, 0.6 * len(task_order) + 1.5)))
-    _apply_chrome(fig, ax)
-
-    for bi, benchmark in enumerate(benchmarks):
-        rows = joined.filter(pl.col(group_col) == benchmark)
-        ys = [
-            task_index[task] + (bi - (n_benchmarks - 1) / 2) * bar_height
-            for task in rows["task"].to_list()
+    allvals = np.concatenate(
+        [
+            data["geo_cells_miter"].to_numpy(),
+            data["geo_cells_internal_asserts"].to_numpy(),
         ]
-        xs = rows["pct_diff"].to_list()
-        ax.barh(
-            ys,
-            xs,
-            height=bar_height * 0.9,
-            color=colors[benchmark],
-            label=benchmark,
-            zorder=3,
-        )
-        for y, v in zip(ys, xs):
-            ax.text(
-                v + (span * 0.02 if v >= 0 else -span * 0.02),
-                y,
-                f"{v:+.0f}%",
-                va="center",
-                ha="left" if v >= 0 else "right",
-                fontsize=6.5,
-                color=INK_SECONDARY,
-                zorder=4,
-            )
-
-    ax.set_yticks(range(len(task_order)), task_order, fontsize=9, color=INK_SECONDARY)
-    ax.axvline(0, color=AXIS, linewidth=1)
-    ax.grid(axis="x", color=GRID, linewidth=0.6, zorder=0)
-    ax.set_xlim(-span * 1.3, span * 1.3)
-
-    ax.set_xlabel("Max solvable cell count, IA vs. MI (%)")
-    ax.set_title(f"Cell-count headroom from internal asserts, per task {title_suffix}")
-    ax.legend(
-        frameon=False,
-        labelcolor=INK_SECONDARY,
-        fontsize=8.5,
-        title=legend_title,
-        title_fontsize=9,
-        loc="upper left",
-        bbox_to_anchor=(1.02, 1.0),
-        borderaxespad=0,
     )
+    allvals = allvals[allvals > 0]
+    if allvals.size == 0:
+        return None
+    floor, ceil = allvals.min() / 2, allvals.max() * 1.6
+
+    panel_w = min(8.0, max(4.0, 0.3 * len(order) + 1.5))
+    fig, axes, spare = _facet_grid(len(tasks), panel_w=panel_w, panel_h=3.4)
+    width = 0.4
+    for ax, task in zip(axes, tasks):
+        _apply_chrome(fig, ax)
+        by_design = {
+            d: (m, a)
+            for d, m, a in data.filter(pl.col("task") == task)
+            .select(group_col, "geo_cells_miter", "geo_cells_internal_asserts")
+            .iter_rows()
+        }
+        mi_v = np.array([by_design.get(d, (0.0, 0.0))[0] for d in order])
+        ia_v = np.array([by_design.get(d, (0.0, 0.0))[1] for d in order])
+        for offset, vals, color in (
+            (-width / 2, mi_v, COLOR_MITER),
+            (width / 2, ia_v, COLOR_INTERNAL_ASSERTS),
+        ):
+            heights = np.where(vals > 0, vals, np.nan) - floor
+            ax.bar(
+                x + offset, heights, width=width, bottom=floor, color=color, zorder=3
+            )
+        ax.set_yscale("log")
+        ax.set_ylim(floor, ceil)
+        ax.set_xticks(x, order, rotation=40, ha="right", fontsize=7)
+        ax.tick_params(labelbottom=True)
+        ax.grid(axis="y", which="both", color=GRID, linewidth=0.5, zorder=0)
+        ax.set_title(task, fontsize=9)
+
+    handles = [
+        Patch(color=COLOR_MITER, label=VARIANT_LABELS["miter"]),
+        Patch(color=COLOR_INTERNAL_ASSERTS, label=VARIANT_LABELS["internal_asserts"]),
+    ]
+    fig.supylabel(
+        "Geo-mean max solvable cells over synthesis axes (log scale)",
+        color=INK_SECONDARY,
+    )
+    fig.suptitle(f"Max solvable cells per design, by engine {title_suffix}", color=INK)
     fig.tight_layout()
+    _place_legend(fig, spare, handles)
     fig.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
     return out_path
 
 
-def _plot_scatter(
+def _plot_cell_diff_heatmap(
     results: pl.DataFrame,
     out_path: Path,
     group_col: str = "benchmark",
-    legend_title: str = "Benchmark",
     title_suffix: str = "(all benchmarks)",
 ) -> Path | None:
-    benchmark_order = results[group_col].unique(maintain_order=True).to_list()
-    mi = _max_solved_cells(results, "miter", group_col=group_col)
-    ia = _max_solved_cells(results, "internal_asserts", group_col=group_col)
-    points = (
-        mi.join(ia, on=[group_col, "task"], how="full", coalesce=True)
-        .fill_null(0)
-        .with_columns(
-            pl.col("max_cells_miter").clip(lower_bound=1),
-            pl.col("max_cells_internal_asserts").clip(lower_bound=1),
-        )
-        .sort([group_col, "task"])
-    )
-    if points.is_empty():
+    pts = _mi_ia_points(results, group_col)
+    if pts.is_empty():
         return None
+    pts = pts.with_columns(
+        (
+            pl.col("max_cells_internal_asserts").clip(lower_bound=1).log(2)
+            - pl.col("max_cells_miter").clip(lower_bound=1).log(2)
+        ).alias("log2_ratio")
+    )
 
-    present = set(points[group_col].unique().to_list())
-    benchmarks = [b for b in benchmark_order if b in present]
-    colors = _categorical_colors(benchmarks)
+    task_order = (
+        pts.group_by("task")
+        .agg(pl.col("log2_ratio").mean().alias("m"))
+        .sort("m")["task"]
+        .to_list()
+    )
+    group_order = (
+        pts.group_by(group_col)
+        .agg(pl.col("log2_ratio").mean().alias("m"))
+        .sort("m", descending=True)[group_col]
+        .to_list()
+    )
 
-    fig, ax = plt.subplots(figsize=(9.5, 9.5))
-    _apply_chrome(fig, ax)
+    row_of = {t: r for r, t in enumerate(task_order)}
+    col_of = {g: c for c, g in enumerate(group_order)}
+    shape = (len(task_order), len(group_order))
+    mat = np.full(shape, np.nan)
+    mi_mat = np.zeros(shape)
+    ia_mat = np.zeros(shape)
+    for g, t, mi_raw, ia_raw, v in pts.select(
+        group_col,
+        "task",
+        "max_cells_miter",
+        "max_cells_internal_asserts",
+        "log2_ratio",
+    ).iter_rows():
+        mat[row_of[t], col_of[g]] = v
+        mi_mat[row_of[t], col_of[g]] = mi_raw
+        ia_mat[row_of[t], col_of[g]] = ia_raw
+    masked = np.ma.masked_invalid(mat)
 
-    for benchmark in benchmarks:
-        rows = points.filter(pl.col(group_col) == benchmark)
-        ax.scatter(
-            rows["max_cells_miter"],
-            rows["max_cells_internal_asserts"],
-            s=60,
-            color=colors[benchmark],
-            alpha=0.85,
-            edgecolors=SURFACE,
-            linewidths=0.6,
-            label=benchmark,
-            zorder=3,
+    vmax = max(float(np.nanpercentile(np.abs(mat), 90)), 1.0)
+    cmap = matplotlib.colormaps["RdBu_r"].copy()
+    cmap.set_bad(NODATA)
+
+    fig, ax = plt.subplots(
+        figsize=(
+            max(6.0, 0.55 * len(group_order) + 3.0),
+            max(3.0, 0.55 * len(task_order) + 2.0),
         )
+    )
+    _apply_chrome(fig, ax)
+    for spine in ("left", "bottom"):
+        ax.spines[spine].set_visible(False)
+    im = ax.imshow(masked, cmap=cmap, vmin=-vmax, vmax=vmax, aspect="auto")
 
-    lo = (
-        min(points["max_cells_miter"].min(), points["max_cells_internal_asserts"].min())
-        * 0.7
-    )
-    hi = (
-        max(points["max_cells_miter"].max(), points["max_cells_internal_asserts"].max())
-        * 1.4
-    )
-    ax.plot([lo, hi], [lo, hi], color=AXIS, linewidth=1, linestyle="--", zorder=2)
-    ax.set_xlim(lo, hi)
-    ax.set_ylim(lo, hi)
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-    ax.set_aspect("equal", adjustable="box")
-    ax.grid(True, which="both", color=GRID, linewidth=0.6, zorder=0)
-    ax.set_xlabel("Miter (MI): max cells solved (log scale)")
-    ax.set_ylabel("Internal asserts (IA): max cells solved (log scale)")
-    ax.set_title(f"MI vs. IA max cells solved, per task {title_suffix}")
-    ax.legend(
-        frameon=False,
-        labelcolor=INK_SECONDARY,
+    ax.set_xticks(range(len(group_order)), group_order, rotation=40, ha="right")
+    ax.set_yticks(range(len(task_order)), task_order)
+    ax.set_xticks(np.arange(len(group_order) + 1) - 0.5, minor=True)
+    ax.set_yticks(np.arange(len(task_order) + 1) - 0.5, minor=True)
+    ax.grid(which="minor", color=SURFACE, linewidth=1.5)
+    ax.tick_params(which="minor", length=0)
+    ax.tick_params(which="major", length=0)
+
+    if mat.size <= 140:
+        for r in range(shape[0]):
+            for c in range(shape[1]):
+                v = mat[r, c]
+                if np.isnan(v):
+                    continue
+                if ia_mat[r, c] == 0:
+                    txt = "IA: 0"
+                elif mi_mat[r, c] == 0:
+                    txt = "MI: 0"
+                else:
+                    mult = ia_mat[r, c] / mi_mat[r, c]
+                    if mult >= 9.5 or mult <= 0.105:
+                        txt = f"{mult:.2g}×"
+                    else:
+                        txt = f"{(mult - 1) * 100:+.0f}%"
+                ax.text(
+                    c,
+                    r,
+                    txt,
+                    ha="center",
+                    va="center",
+                    fontsize=6.5,
+                    color="white" if abs(v) > vmax * 0.55 else INK,
+                )
+
+    cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.02)
+    cbar.set_label(
+        "log2(IA / MI) max solvable cells   (+1 → 2×, −1 → ½)",
+        color=INK_SECONDARY,
         fontsize=8.5,
-        title=legend_title,
-        title_fontsize=9,
-        loc="upper left",
-        bbox_to_anchor=(1.02, 1.0),
-        borderaxespad=0,
+    )
+    cbar.ax.tick_params(colors=MUTED, labelsize=8)
+    cbar.outline.set_visible(False)
+
+    ax.set_title(
+        f"Cell-count headroom from internal asserts, per engine {title_suffix}"
     )
     fig.tight_layout()
     fig.savefig(out_path, dpi=200, bbox_inches="tight")
@@ -246,342 +336,116 @@ def _plot_scatter(
     return out_path
 
 
-def _cactus_curve(
-    benchmark_df: pl.DataFrame, variant: str
-) -> tuple[list[float], list[int]]:
-    sub = (
-        benchmark_df.filter(pl.col(f"result_{variant}") == "PASS")
-        .select(
-            pl.col(f"process_secs_{variant}").alias("secs"),
-            pl.col(f"cells_{variant}").alias("cells"),
-        )
-        .drop_nulls()
-        .sort("secs")
-    )
-    if sub.is_empty():
-        return [], []
-    secs = sub["secs"].to_list()
-    cummax = sub.select(pl.col("cells").cum_max()).to_series().to_list()
-    return secs, cummax
-
-
-def _plot_cactus(
-    benchmark_df: pl.DataFrame, benchmark: str, out_path: Path
+def _plot_scatter_facets(
+    results: pl.DataFrame,
+    out_path: Path,
+    group_col: str = "benchmark",
+    title_suffix: str = "(all benchmarks)",
 ) -> Path | None:
-    fig, ax = plt.subplots(figsize=(10, 7))
-    _apply_chrome(fig, ax)
-
-    any_points = False
-    for variant in ("miter", "internal_asserts"):
-        secs, cells = _cactus_curve(benchmark_df, variant)
-        if not secs:
-            continue
-        any_points = True
-        secs = [max(secs[0], 0.01) * 0.5, *[max(s, 0.01) for s in secs]]
-        cells = [cells[0], *cells]
-        ax.step(
-            secs,
-            cells,
-            where="post",
-            color=VARIANT_COLORS[variant],
-            linewidth=2,
-            label=VARIANT_LABELS[variant],
-            zorder=3,
-        )
-
-    if not any_points:
-        plt.close(fig)
+    pts = _mi_ia_points(results, group_col).with_columns(
+        pl.col("max_cells_miter").clip(lower_bound=1).alias("mi"),
+        pl.col("max_cells_internal_asserts").clip(lower_bound=1).alias("ia"),
+    )
+    if pts.is_empty():
         return None
 
-    ax.set_xscale("log")
-    ax.grid(True, which="both", color=GRID, linewidth=0.6, zorder=0)
-    ax.set_xlabel("Time budget (s, log scale)")
-    ax.set_ylabel("Largest provable cell count")
-    ax.set_title(f"{benchmark}: cactus plot (cells over time)")
-    ax.legend(frameon=False, labelcolor=INK_SECONDARY, fontsize=9, loc="upper left")
+    tasks = sorted(pts["task"].unique().to_list())
+    lo = min(pts["mi"].min(), pts["ia"].min()) * 0.7
+    hi = max(pts["mi"].max(), pts["ia"].max()) * 1.4
+
+    fig, axes, spare = _facet_grid(len(tasks), panel_w=3.6, panel_h=3.6)
+    for ax, task in zip(axes, tasks):
+        _apply_chrome(fig, ax)
+        sub = pts.filter(pl.col("task") == task)
+        mi = sub["mi"].to_numpy()
+        ia = sub["ia"].to_numpy()
+        for mask, color in zip(
+            _win_loss_masks(mi, ia), (MUTED, COLOR_INTERNAL_ASSERTS, COLOR_MITER)
+        ):
+            ax.scatter(
+                mi[mask],
+                ia[mask],
+                s=22,
+                color=color,
+                alpha=0.7,
+                edgecolors=SURFACE,
+                linewidths=0.4,
+                zorder=3,
+            )
+        ax.plot([lo, hi], [lo, hi], color=AXIS, linewidth=1, linestyle="--", zorder=2)
+        ax.set_xscale("log")
+        ax.set_yscale("log")
+        ax.set_xlim(lo, hi)
+        ax.set_ylim(lo, hi)
+        ax.set_aspect("equal", adjustable="box")
+        ax.grid(True, which="both", color=GRID, linewidth=0.5, zorder=0)
+        ax.tick_params(labelbottom=True)
+        ax.set_title(task, fontsize=9)
+
+    handles = [
+        Line2D(
+            [0],
+            [0],
+            marker="o",
+            ls="",
+            color=COLOR_INTERNAL_ASSERTS,
+            label="IA solves more",
+        ),
+        Line2D([0], [0], marker="o", ls="", color=COLOR_MITER, label="MI solves more"),
+        Line2D([0], [0], marker="o", ls="", color=MUTED, label="within 5%"),
+    ]
+    fig.supxlabel("Miter (MI): max cells solved (log scale)", color=INK_SECONDARY)
+    fig.supylabel(
+        "Internal asserts (IA): max cells solved (log scale)", color=INK_SECONDARY
+    )
+    fig.suptitle(f"MI vs. IA max cells solved, per engine {title_suffix}", color=INK)
     fig.tight_layout()
-    fig.savefig(out_path, dpi=200)
+    _place_legend(fig, spare, handles, fontsize=8.5)
+    fig.savefig(out_path, dpi=200, bbox_inches="tight")
     plt.close(fig)
     return out_path
 
 
 def generate_plots(results: pl.DataFrame, out_dir: Path) -> list[Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
-    written: list[Path] = []
-
-    combined_plots = [
-        (_plot_cell_diff_bar, "all_benchmarks_cell_diff_bar.png"),
-        (_plot_scatter, "all_benchmarks_scatter.png"),
+    candidates = [
+        _plot_cell_diff_heatmap(
+            results,
+            out_dir / "all_benchmarks_cell_diff_heatmap.png",
+            group_col="benchmark",
+        ),
+        _plot_scatter_facets(
+            results, out_dir / "all_benchmarks_scatter.png", group_col="benchmark"
+        ),
+        _plot_task_design_bars(
+            results, out_dir / "all_benchmarks_cells_bars.png", group_col="benchmark"
+        ),
     ]
-    for plot_fn, filename in combined_plots:
-        result = plot_fn(results, out_dir / filename)
-        if result is not None:
-            written.append(result)
-
-    for benchmark in results["benchmark"].unique(maintain_order=True):
-        benchmark_df = results.filter(pl.col("benchmark") == benchmark)
-        slug = _slugify(benchmark)
-        result = _plot_cactus(benchmark_df, benchmark, out_dir / f"{slug}_cactus.png")
-        if result is not None:
-            written.append(result)
-
-    return written
-
-
-def _plot_cactus_overlay(
-    results: pl.DataFrame, group_col: str, out_path: Path
-) -> Path | None:
-    groups = results[group_col].unique(maintain_order=True).to_list()
-    colors = _categorical_colors(groups)
-
-    fig, axes = plt.subplots(1, 2, figsize=(16, 7.5), sharey=True)
-    any_points = False
-    for ax, variant in zip(axes, ("miter", "internal_asserts")):
-        _apply_chrome(fig, ax)
-        for group in groups:
-            sub = results.filter(pl.col(group_col) == group)
-            secs, cells = _cactus_curve(sub, variant)
-            if not secs:
-                continue
-            any_points = True
-            secs = [max(secs[0], 0.01) * 0.5, *[max(s, 0.01) for s in secs]]
-            cells = [cells[0], *cells]
-            ax.step(
-                secs,
-                cells,
-                where="post",
-                color=colors[group],
-                linewidth=2,
-                label=group,
-                zorder=3,
-            )
-        ax.set_xscale("log")
-        ax.set_yscale("log")
-        ax.grid(True, which="both", color=GRID, linewidth=0.6, zorder=0)
-        ax.set_xlabel("Time budget (s, log scale)")
-        ax.set_title(VARIANT_LABELS[variant])
-
-    if not any_points:
-        plt.close(fig)
-        return None
-
-    axes[0].set_ylabel("Largest provable cell count (log scale)")
-    axes[1].legend(
-        frameon=False,
-        labelcolor=INK_SECONDARY,
-        fontsize=8.5,
-        title="Benchmark",
-        title_fontsize=9,
-        loc="upper left",
-        bbox_to_anchor=(1.02, 1.0),
-        borderaxespad=0,
-    )
-    fig.suptitle(
-        "Cross-benchmark cactus plot: cells solved vs. time budget", color=INK
-    )
-    fig.tight_layout()
-    fig.savefig(out_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return out_path
-
-
-def _plot_leaderboard(
-    results: pl.DataFrame, group_col: str, out_path: Path
-) -> Path | None:
-    mi = (
-        _max_solved_cells(results, "miter", group_col=group_col)
-        .group_by(group_col)
-        .agg(pl.col("max_cells_miter").max().alias("best_mi"))
-    )
-    ia = (
-        _max_solved_cells(results, "internal_asserts", group_col=group_col)
-        .group_by(group_col)
-        .agg(pl.col("max_cells_internal_asserts").max().alias("best_ia"))
-    )
-    both = mi.join(ia, on=group_col, how="full", coalesce=True).fill_null(0)
-    if both.is_empty():
-        return None
-    both = both.with_columns(
-        pl.max_horizontal("best_mi", "best_ia").alias("sort_key")
-    ).sort("sort_key")
-
-    groups = both[group_col].to_list()
-    mi_vals = both["best_mi"].to_list()
-    ia_vals = both["best_ia"].to_list()
-    ys = range(len(groups))
-
-    fig, ax = plt.subplots(figsize=(9.5, max(3.5, 0.6 * len(groups) + 1.5)))
-    _apply_chrome(fig, ax)
-    positive = [v for v in (*mi_vals, *ia_vals) if v > 0]
-    xlim_lo = min(positive) / 3 if positive else 1
-    row_offset = 0.17
-    for y, mi_v, ia_v in zip(ys, mi_vals, ia_vals):
-        for value, color, dy in (
-            (mi_v, COLOR_MITER, row_offset),
-            (ia_v, COLOR_INTERNAL_ASSERTS, -row_offset),
-        ):
-            if value <= 0:
-                continue
-            yy = y + dy
-            ax.hlines(yy, xlim_lo, value, color=color, linewidth=3, zorder=3)
-            ax.scatter([value], [yy], color=color, s=55, zorder=4)
-            ax.text(
-                value * 1.03, yy, f"{value:,}", va="center", fontsize=7.5,
-                color=INK_SECONDARY, zorder=4,
-            )
-
-    ax.set_yticks(list(ys), groups, fontsize=9, color=INK_SECONDARY)
-    ax.set_xscale("log")
-    ax.set_xlim(left=xlim_lo)
-    ax.grid(axis="x", which="both", color=GRID, linewidth=0.6, zorder=0)
-    ax.set_xlabel("Largest solved cell count, best task (log scale)")
-    ax.set_title("Suite leaderboard: max cells solved, MI vs. IA")
-    ax.legend(
-        handles=[
-            Line2D([0], [0], color=COLOR_MITER, lw=3, marker="o",
-                   label=VARIANT_LABELS["miter"]),
-            Line2D([0], [0], color=COLOR_INTERNAL_ASSERTS, lw=3, marker="o",
-                   label=VARIANT_LABELS["internal_asserts"]),
-        ],
-        frameon=False,
-        labelcolor=INK_SECONDARY,
-        fontsize=8.5,
-        loc="lower right",
-    )
-    fig.tight_layout()
-    fig.savefig(out_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return out_path
-
-
-def _split_synth_flavor(results: pl.DataFrame) -> pl.DataFrame:
-    return results.with_columns(
-        pl.when(pl.col("benchmark").str.ends_with("(ORFS)"))
-        .then(pl.lit("ORFS"))
-        .otherwise(pl.lit("Plain Yosys"))
-        .alias("synth_flavor")
-    )
-
-
-def _plot_synth_flavor_scatter(results: pl.DataFrame, out_path: Path) -> Path | None:
-    flavored = _split_synth_flavor(results)
-    benchmark_order = flavored["benchmark_dir"].unique(maintain_order=True).to_list()
-    colors = _categorical_colors(benchmark_order)
-
-    fig, axes = plt.subplots(1, 2, figsize=(16.5, 8), sharex=True, sharey=True)
-    any_points = False
-    for ax, flavor in zip(axes, ("Plain Yosys", "ORFS")):
-        _apply_chrome(fig, ax)
-        ax.set_title(flavor)
-        subset = flavored.filter(pl.col("synth_flavor") == flavor)
-        if subset.is_empty():
-            continue
-        mi = _max_solved_cells(subset, "miter", group_col="benchmark_dir")
-        ia = _max_solved_cells(subset, "internal_asserts", group_col="benchmark_dir")
-        points = (
-            mi.join(ia, on=["benchmark_dir", "task"], how="full", coalesce=True)
-            .fill_null(0)
-            .with_columns(
-                pl.col("max_cells_miter").clip(lower_bound=1),
-                pl.col("max_cells_internal_asserts").clip(lower_bound=1),
-            )
-        )
-        if points.is_empty():
-            continue
-
-        for benchmark_dir in benchmark_order:
-            rows = points.filter(pl.col("benchmark_dir") == benchmark_dir)
-            if rows.is_empty():
-                continue
-            any_points = True
-            ax.scatter(
-                rows["max_cells_miter"],
-                rows["max_cells_internal_asserts"],
-                s=60,
-                color=colors[benchmark_dir],
-                alpha=0.85,
-                edgecolors=SURFACE,
-                linewidths=0.6,
-                label=benchmark_dir,
-                zorder=3,
-            )
-        ax.set_xscale("log")
-        ax.set_yscale("log")
-        ax.grid(True, which="both", color=GRID, linewidth=0.6, zorder=0)
-        ax.set_xlabel("Miter (MI): max cells solved (log scale)")
-
-    if not any_points:
-        plt.close(fig)
-        return None
-
-    lo, hi = float("inf"), 0.0
-    for ax in axes:
-        for coll in ax.collections:
-            offsets = coll.get_offsets()
-            if len(offsets):
-                lo = min(lo, offsets[:, 0].min(), offsets[:, 1].min())
-                hi = max(hi, offsets[:, 0].max(), offsets[:, 1].max())
-    lo, hi = lo * 0.7, hi * 1.4
-    for ax in axes:
-        ax.plot([lo, hi], [lo, hi], color=AXIS, linewidth=1, linestyle="--", zorder=2)
-        ax.set_xlim(lo, hi)
-        ax.set_ylim(lo, hi)
-        ax.set_aspect("equal", adjustable="box")
-
-    axes[0].set_ylabel("Internal asserts (IA): max cells solved (log scale)")
-    axes[1].legend(
-        frameon=False,
-        labelcolor=INK_SECONDARY,
-        fontsize=8.5,
-        title="Design",
-        title_fontsize=9,
-        loc="upper left",
-        bbox_to_anchor=(1.02, 1.0),
-        borderaxespad=0,
-    )
-    fig.suptitle("MI vs. IA max cells solved, by synthesis flow", color=INK)
-    fig.tight_layout()
-    fig.savefig(out_path, dpi=200, bbox_inches="tight")
-    plt.close(fig)
-    return out_path
+    return [p for p in candidates if p is not None]
 
 
 def generate_cross_benchmark_plots(
     results: pl.DataFrame, out_dir: Path, group_col: str = "benchmark_dir"
 ) -> list[Path]:
     out_dir.mkdir(parents=True, exist_ok=True)
-    written: list[Path] = []
-
-    result = _plot_cell_diff_bar(
-        results,
-        out_dir / "suite_cell_diff_bar.png",
-        group_col=group_col,
-        legend_title="Design",
-        title_suffix="(whole suite)",
-    )
-    if result is not None:
-        written.append(result)
-
-    result = _plot_scatter(
-        results,
-        out_dir / "suite_scatter.png",
-        group_col=group_col,
-        legend_title="Design",
-        title_suffix="(whole suite)",
-    )
-    if result is not None:
-        written.append(result)
-
-    result = _plot_cactus_overlay(results, group_col, out_dir / "suite_cactus.png")
-    if result is not None:
-        written.append(result)
-
-    result = _plot_leaderboard(results, group_col, out_dir / "suite_leaderboard.png")
-    if result is not None:
-        written.append(result)
-
-    result = _plot_synth_flavor_scatter(results, out_dir / "suite_synth_flavor.png")
-    if result is not None:
-        written.append(result)
-
-    return written
+    candidates = [
+        _plot_cell_diff_heatmap(
+            results,
+            out_dir / "suite_cell_diff_heatmap.png",
+            group_col=group_col,
+            title_suffix="(whole suite)",
+        ),
+        _plot_scatter_facets(
+            results,
+            out_dir / "suite_scatter.png",
+            group_col=group_col,
+            title_suffix="(whole suite)",
+        ),
+        _plot_task_design_bars(
+            results,
+            out_dir / "suite_cells_bars.png",
+            group_col=group_col,
+            title_suffix="(whole suite)",
+        ),
+    ]
+    return [p for p in candidates if p is not None]
