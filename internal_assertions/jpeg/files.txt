@@ -1,0 +1,13 @@
+src/jpeg_encoder.v
+src/dct.v
+src/dct_mac.v
+src/dctu.v
+src/dctub.v
+src/div_su.v
+src/div_uu.v
+src/fdct.v
+src/jpeg_qnr.v
+src/jpeg_rle.v
+src/jpeg_rle1.v
+src/jpeg_rzs.v
+src/zigzag.v

@@ -1,0 +1,32 @@
+[options]
+splitnets on
+
+[gold]
+plugin -i slang
+read_slang --top jpeg_encoder --ignore-timing -I ../src/include ../src/*.v
+
+hierarchy -check -top jpeg_encoder
+memory_map -formal
+flatten
+
+[gate]
+read_liberty -lib ../sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil ./gate_out.il
+rename gate_top jpeg_encoder
+
+[script]
+select -module jpeg_encoder
+fminit -seq rst 0,0,1
+fminit -set clk 0
+select -clear
+
+[collect *]
+bind *
+
+[strategy sby]
+use sby
+#engine aiger suprove
+#engine abc pdr
+engine smtbmc bitwuzla
+depth 10
+timeout 60
