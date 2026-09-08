@@ -42,7 +42,7 @@ def match_wire_widhts(token: str, wires: Wires) -> list[str]:
     width, offset = wires.get(name, (1, 0))
     if width <= 1:
         return [name]
-    return [f"{name}[{offset + 1}]" for i in range(width)]
+    return [f"{name}[{offset + i}]" for i in range(width)]
 
 
 def parse_wires_and_ports(lines: list[str]) -> tuple[Wires, set[str]]:
@@ -78,6 +78,38 @@ def parse_base_and_bit(name: str) -> tuple[str, "int | None"]:
     return name, None
 
 
+BITSEL_RE = re.compile(r"^\[(\d+)(?::(\d+))?\]$")
+
+
+def q_wire_bits(q_conn: str):
+    """Yield (base_name, bit) for every named-wire bit in a FF Q sigspec.
+
+    Handles `\\w`, `\\w[3]` (embedded), `\\w [3]` and `\\w [9:8]` (RTLIL
+    bit-selects), and concat sigspecs `{ \\a \\b [9:8] 8'0 }`. `bit` is None
+    only for a whole wire with no select. Constant chunks are skipped.
+    """
+    s = q_conn.strip()
+    if s.startswith("{"):
+        s = s[1:-1]
+    toks = s.split()
+    i = 0
+    while i < len(toks):
+        t = toks[i]
+        i += 1
+        if not t.startswith("\\") or "$" in t:
+            continue
+        base, embedded = parse_base_and_bit(t[1:])
+        m = BITSEL_RE.match(toks[i]) if i < len(toks) else None
+        if m:
+            i += 1
+            hi = int(m.group(1))
+            lo = int(m.group(2)) if m.group(2) is not None else hi
+            for b in range(min(hi, lo), max(hi, lo) + 1):
+                yield base, b
+        else:
+            yield base, embedded
+
+
 def parse_register_cells(lines: list[str]) -> list[RegCell]:
     cells: list[RegCell] = []
     pending: str | None = None
@@ -102,11 +134,8 @@ def parse_register_cells(lines: list[str]) -> list[RegCell]:
                         q_conn = conn.strip()
                 j += 1
             if has_clk and q_conn:
-                tokens = q_conn[1:-1].split() if q_conn.startswith("{") else [q_conn]
-                for token in tokens:
-                    if token.startswith("\\") and "$" not in token:
-                        name, bit = parse_base_and_bit(token[1:])
-                        cells.append({"src": src, "name": name, "bit": bit})
+                for name, bit in q_wire_bits(q_conn):
+                    cells.append({"src": src, "name": name, "bit": bit})
             i = j + 1
             continue
         pending = None

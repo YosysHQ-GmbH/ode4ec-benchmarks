@@ -49,7 +49,6 @@ opt
 fminit -seq rst 0,0,1 -posedge clk
 
 async2sync
-clk2fflogic
 
 setundef -zero
 setundef -undriven -init -zero
