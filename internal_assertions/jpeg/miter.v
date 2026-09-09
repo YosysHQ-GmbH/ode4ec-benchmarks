@@ -55,11 +55,13 @@ module miter
    );
 
    always @(posedge clk) begin
+
       assert(qnt_cnt_a == qnt_cnt_b);
       assert(size_a    == size_b);
       assert(rlen_a    == rlen_b);
       assert(amp_a     == amp_b);
       assert(douten_a  == douten_b);
+
 `ifdef INTERNAL_ASSERTS
       `include "internal_helper_asserts.vh"
 `endif

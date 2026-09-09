@@ -17,6 +17,9 @@ WIRE_OFFSET_RE = re.compile(r"\boffset (\d+)\b")
 BIT_SUFFIX_RE = re.compile(r"^(.*)\[(\d+)\]$")
 ATTR_SRC_RE = re.compile(r'^  attribute \\src "([^"]*)"$')
 
+RESET_PORTS = {"ARST", "SRST"}
+SKIP_RE = re.compile(r"^(qnr|rle|dc_diff)")
+
 Wires = dict[str, tuple[int, int]]
 RegCell = dict
 Pair = tuple[str, "int | None", str]
@@ -78,39 +81,7 @@ def parse_base_and_bit(name: str) -> tuple[str, "int | None"]:
     return name, None
 
 
-BITSEL_RE = re.compile(r"^\[(\d+)(?::(\d+))?\]$")
-
-
-def q_wire_bits(q_conn: str):
-    """Yield (base_name, bit) for every named-wire bit in a FF Q sigspec.
-
-    Handles `\\w`, `\\w[3]` (embedded), `\\w [3]` and `\\w [9:8]` (RTLIL
-    bit-selects), and concat sigspecs `{ \\a \\b [9:8] 8'0 }`. `bit` is None
-    only for a whole wire with no select. Constant chunks are skipped.
-    """
-    s = q_conn.strip()
-    if s.startswith("{"):
-        s = s[1:-1]
-    toks = s.split()
-    i = 0
-    while i < len(toks):
-        t = toks[i]
-        i += 1
-        if not t.startswith("\\") or "$" in t:
-            continue
-        base, embedded = parse_base_and_bit(t[1:])
-        m = BITSEL_RE.match(toks[i]) if i < len(toks) else None
-        if m:
-            i += 1
-            hi = int(m.group(1))
-            lo = int(m.group(2)) if m.group(2) is not None else hi
-            for b in range(min(hi, lo), max(hi, lo) + 1):
-                yield base, b
-        else:
-            yield base, embedded
-
-
-def parse_register_cells(lines: list[str]) -> list[RegCell]:
+def parse_register_cells(lines: list[str], require_reset: bool = False) -> list[RegCell]:
     cells: list[RegCell] = []
     pending: str | None = None
     i = 0
@@ -124,18 +95,24 @@ def parse_register_cells(lines: list[str]) -> list[RegCell]:
             src, pending = pending, None
             j = i + 1
             has_clk = False
+            has_reset = False
             q_conn = None
             while lines[j] != "  end":
                 if match_re := CONNECT_RE.match(lines[j]):
                     port, conn = match_re.groups()
                     if port == "CLK":
                         has_clk = True
+                    elif port in RESET_PORTS:
+                        has_reset = True
                     elif port == "Q":
                         q_conn = conn.strip()
                 j += 1
-            if has_clk and q_conn:
-                for name, bit in q_wire_bits(q_conn):
-                    cells.append({"src": src, "name": name, "bit": bit})
+            if has_clk and q_conn and (has_reset or not require_reset):
+                tokens = q_conn[1:-1].split() if q_conn.startswith("{") else [q_conn]
+                for token in tokens:
+                    if token.startswith("\\") and "$" not in token:
+                        name, bit = parse_base_and_bit(token[1:])
+                        cells.append({"src": src, "name": name, "bit": bit})
             i = j + 1
             continue
         pending = None
@@ -287,7 +264,7 @@ def main() -> None:
     gold_content = GOLD_NETLIST.read_text()
     gold_lines = get_module_lines(gold_content, "gold_top")
     gold_wires, gold_ports = parse_wires_and_ports(gold_lines)
-    gold_cells = parse_register_cells(gold_lines)
+    gold_cells = parse_register_cells(gold_lines, require_reset=True)
     gold_names = names_from_cells(gold_cells, gold_wires, gold_ports)
 
     gate_content = GATE_NETLIST.read_text()
@@ -312,6 +289,7 @@ def main() -> None:
         name_pairs + src_pairs,
         key=lambda p: (p[0], -1 if p[1] is None else p[1], p[2]),
     )
+    all_pairs = [p for p in all_pairs if not SKIP_RE.match(p[0])]
 
     write_output_files(all_pairs, out_paths=out_paths, gold_wires=gold_wires)
 

@@ -1,35 +1,33 @@
 [tasks]
-task_btor
-task_abc
-task_aiger
-task_bitwuzla
-task_ric3
+task_bmc
+task_pdr
+task_kind
+task_itp
+task_portfolio
 
 [options]
-task_btor: mode bmc
-task_btor: depth 70
-task_btor: timeout 1800
+task_bmc: mode bmc
+task_bmc: depth 170
+task_bmc: timeout 7200
 
-task_ric3: mode prove
-task_ric3: timeout 1800
+task_pdr: mode prove
+task_pdr: timeout 1800
 
-task_abc: mode prove
-task_abc: timeout 1800
-task_aiger: mode prove
-task_aiger: timeout 1800
+task_kind: mode prove
+task_kind: timeout 1800
 
-task_bitwuzla: mode bmc
-task_bitwuzla: depth 70
-task_bitwuzla: timeout 1800
+task_itp: mode prove
+task_itp: timeout 1800
+
+task_portfolio: mode prove
+task_portfolio: timeout 1800
 
 [engines]
-task_btor: btor btormc
-task_bitwuzla: smtbmc bitwuzla
-
-task_abc: abc pdr
-task_aiger: aiger suprove
-
-task_ric3: btor rIC3 -e ic3 --ic3-inn
+task_bmc: smtbmc bitwuzla
+task_pdr: btor rIC3 -e ic3
+task_kind: btor rIC3 -e kind --kind-simple-path
+task_itp: aiger avy
+task_portfolio: aiger suprove
 
 [script]
 # Gold
