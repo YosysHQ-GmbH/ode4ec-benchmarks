@@ -1,0 +1,3 @@
+
+expose gold_top/w:\fdct_zigzag.dct_mod.ddcnt gold_top/w:\fdct_zigzag.dct_mod.dddcnt gold_top/w:\fdct_zigzag.dct_mod.dgo gold_top/w:\fdct_zigzag.dct_mod.douten gold_top/w:\fdct_zigzag.dct_mod.go gold_top/w:\fdct_zigzag.dct_mod.sample_cnt
+expose gate_top/w:\fdct_zigzag.dct_mod.ddcnt gate_top/w:\fdct_zigzag.dct_mod.dddcnt gate_top/w:\fdct_zigzag.dct_mod.dgo gate_top/w:\fdct_zigzag.dct_mod.douten gate_top/w:\fdct_zigzag.dct_mod.go gate_top/w:\fdct_zigzag.dct_mod.sample_cnt\[0\] gate_top/w:\fdct_zigzag.dct_mod.sample_cnt\[1\] gate_top/w:\fdct_zigzag.dct_mod.sample_cnt\[2\] gate_top/w:\fdct_zigzag.dct_mod.sample_cnt\[3\] gate_top/w:\fdct_zigzag.dct_mod.sample_cnt\[4\] gate_top/w:\fdct_zigzag.dct_mod.sample_cnt\[5\]

@@ -1,0 +1,69 @@
+[tasks]
+task_plain_pdr
+task_plain_suprove
+task_plain_rIC3
+task_ia internal_include
+
+[options]
+task_plain_pdr: mode prove
+task_plain_pdr: timeout 1800
+task_plain_suprove: mode prove
+task_plain_suprove: timeout 1800
+task_plain_rIC3: mode prove
+task_plain_rIC3: timeout 1800
+task_ia: mode prove
+task_ia: timeout 1800
+
+[engines]
+task_plain_pdr: abc pdr
+task_plain_suprove: aiger suprove
+task_plain_rIC3: aiger rIC3
+task_ia: abc pdr
+
+[script]
+# Variant of custom_miter.sby / custom_miter_with_extra_asserts.sby (yosys gate) with a reset sequence.
+# task_plain_*: the output asserts only (plain miter, three complete engines);
+# task_ia: plus the internal asserts; seqprove/seqprove/build_model.py builds seq_prove's model from it
+# (it drops clk2fflogic). Tag internal_include: tasks that read the internal-assert includes.
+
+# Gold
+read_rtlil gold_out.il
+
+# Gate
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil gate_out.il
+chformal -assert -remove
+
+# Miter
+internal_include: script expose_yosys.ys
+plugin -i slang
+internal_include: read_slang --top miter -D INTERNAL_ASSERTS miter.v
+~internal_include: read_slang --top miter miter.v
+
+hierarchy -top miter
+flatten
+opt
+
+# Reset sequence (assumption, approved 2026-10-05 as for cva6): rstn_i (active low) is 0 until the second
+# rising edge of clk_i, then free (it may be asserted again later). The check is thereby restricted to runs
+# that start with a reset; without it the zero init values of the registers are compared, which synthesis
+# may change (cva6: a register became a constant). Two edges, not one: with clk2fflogic the first edge can
+# be at step 0, where a register loads its init value, not the reset.
+fminit -seq rstn_i 0,0,'z -posedge clk_i
+
+async2sync
+clk2fflogic
+
+setundef -zero
+setundef -undriven -init -zero
+
+[files]
+../sky130
+../miter.v
+internal_helper_asserts.vh ../internal_asserts/asserts_yosys.vh
+internal_helper_decls.vh ../internal_asserts/decls_yosys.vh
+../internal_asserts/expose_yosys.ys
+internal_helper_ports_a.vh ../internal_asserts/ports_a_yosys.vh
+internal_helper_ports_b.vh ../internal_asserts/ports_b_yosys.vh
+gold_out.il
+gate_out.il gate_out_yosys.il

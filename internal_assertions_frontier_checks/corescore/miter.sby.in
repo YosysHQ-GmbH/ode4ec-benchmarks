@@ -18,6 +18,14 @@ clk2fflogic
 setundef -zero
 setundef -undriven -init -zero
 
+# AIGER engines: sby's AIGER flow techmaps the design after this script, which turns the gold's $shiftx cells
+# (axis_arb_mux.v `s_axis_tdata[grant_encoded*DATA_WIDTH +: DATA_WIDTH]`, serving_ram.v `i_wb_dat[bsel*8+:8]`)
+# into logic with x constants for out-of-range indices; write_aiger refuses those (all AIGER engines ERROR at
+# C1). Bit-blast here and read them as 0, as the setundef above does and as yosys' SMT2 backend reads
+# out-of-range $shiftx bits. It only asks more of the gate (it must match gold with these bits fixed to 0), so
+# it cannot turn a difference into a PASS. Approved 2026-10-06, as for secworks_sha256.
+techmap; opt -fast; setundef -zero
+
 [files]
 ../../sky130
 miter.v

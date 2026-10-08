@@ -1,0 +1,12 @@
+
+      , .\fdct_zigzag.dct_mod.ddcnt (ihv_fdct_zigzag_dct_mod_ddcnt_b)
+      , .\fdct_zigzag.dct_mod.dddcnt (ihv_fdct_zigzag_dct_mod_dddcnt_b)
+      , .\fdct_zigzag.dct_mod.dgo (ihv_fdct_zigzag_dct_mod_dgo_b)
+      , .\fdct_zigzag.dct_mod.douten (ihv_fdct_zigzag_dct_mod_douten_b)
+      , .\fdct_zigzag.dct_mod.go (ihv_fdct_zigzag_dct_mod_go_b)
+      , .\fdct_zigzag.dct_mod.sample_cnt[0] (ihv_fdct_zigzag_dct_mod_sample_cnt_b[0])
+      , .\fdct_zigzag.dct_mod.sample_cnt[1] (ihv_fdct_zigzag_dct_mod_sample_cnt_b[1])
+      , .\fdct_zigzag.dct_mod.sample_cnt[2] (ihv_fdct_zigzag_dct_mod_sample_cnt_b[2])
+      , .\fdct_zigzag.dct_mod.sample_cnt[3] (ihv_fdct_zigzag_dct_mod_sample_cnt_b[3])
+      , .\fdct_zigzag.dct_mod.sample_cnt[4] (ihv_fdct_zigzag_dct_mod_sample_cnt_b[4])
+      , .\fdct_zigzag.dct_mod.sample_cnt[5] (ihv_fdct_zigzag_dct_mod_sample_cnt_b[5])

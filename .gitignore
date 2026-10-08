@@ -10,3 +10,6 @@ internal_assertions_frontier_checks/summary/
 !internal_assertions_frontier_checks/*/openroad/**
 .nvim/svlangserver/
 **/__pycache__/**
+
+# seqprove / run_bench outputs (models, runs, mutants)
+seqprove/runs/

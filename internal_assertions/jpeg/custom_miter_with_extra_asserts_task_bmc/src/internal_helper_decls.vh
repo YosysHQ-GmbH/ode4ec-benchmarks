@@ -1,0 +1,13 @@
+
+wire ihv_fdct_zigzag_dct_mod_ddcnt_a;
+wire ihv_fdct_zigzag_dct_mod_ddcnt_b;
+wire ihv_fdct_zigzag_dct_mod_dddcnt_a;
+wire ihv_fdct_zigzag_dct_mod_dddcnt_b;
+wire ihv_fdct_zigzag_dct_mod_dgo_a;
+wire ihv_fdct_zigzag_dct_mod_dgo_b;
+wire ihv_fdct_zigzag_dct_mod_douten_a;
+wire ihv_fdct_zigzag_dct_mod_douten_b;
+wire ihv_fdct_zigzag_dct_mod_go_a;
+wire ihv_fdct_zigzag_dct_mod_go_b;
+wire [5:0] ihv_fdct_zigzag_dct_mod_sample_cnt_a;
+wire [5:0] ihv_fdct_zigzag_dct_mod_sample_cnt_b;
