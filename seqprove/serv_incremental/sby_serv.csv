@@ -1,0 +1,9 @@
+variant,task,result,secs
+mi,task_aiger,PASS,1.0
+ia,task_aiger,PASS,1.0
+mi,task_abc,PASS,4.2
+ia,task_abc,PASS,4.5
+ia,task_btor,PASS,30.4
+mi,task_btor,PASS,87.4
+ia,task_bitwuzla,PASS,90.5
+mi,task_bitwuzla,PASS,156.4
