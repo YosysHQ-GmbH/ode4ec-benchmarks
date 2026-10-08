@@ -1,0 +1,5 @@
+# neorv32_cpu (internal_assertions/neorv32, yosys gate) with the reset sequence of custom_miter_reset.sby
+# (fminit -seq rstn_i 0,0,'z, approved 2026-10-05). seq_prove model from task_ia with the shared generator's
+# candidates (+ FSM recoding, unreachable values, valid-guarded data); plain sby: --sby with the task_plain_*
+# tasks; eqy: run_bench's fixed config (bind *, abc pdr, no reset assumption).
+neorv32 yosys_reset asserts=new dir=internal_assertions/neorv32/run sby=../custom_miter_reset.sby task=task_ia regen=gold=gold_out.il regen=gate=gate_out.il regen=asserts=internal_helper_asserts.vh regen=decls=internal_helper_decls.vh regen=ports_a=internal_helper_ports_a.vh regen=ports_b=internal_helper_ports_b.vh regen=expose=expose_yosys.ys build=--fsm-candidates build=--range-candidates build=--guarded-candidates gold=gold_out.il gate=gate_out.il

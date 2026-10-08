@@ -1,0 +1,9 @@
+# Hard set: designs where the plain miter (sby prove engines) needs minutes or times out.
+# Frontier data (internal_assertions_frontier_checks/*/run/results.csv, plain miter, best prove engine):
+#   xorgrid W16 suprove 32s, W20 67s, W24 TIMEOUT 600s, W32 TIMEOUT 600s; corescore: no usable plain result.
+xorgrid    I16_O16_C16_W16_H16_F8_N6_D4_S0_T600
+xorgrid    I16_O16_C16_W20_H20_F8_N6_D4_S0_T600
+xorgrid    I16_O16_C16_W24_H24_F8_N6_D4_S0_T600
+xorgrid    I16_O16_C16_W32_H32_F8_N6_D4_S0_T600
+corescore  C2_T900   asserts=new
+corescore  C4_T900   asserts=new

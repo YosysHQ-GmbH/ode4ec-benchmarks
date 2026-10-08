@@ -1,0 +1,16 @@
+# A/B set for seq_prove changes (plan step 6). BENCH RUN [asserts=old|new]
+# asserts=new: candidates regenerated with match_gate_wires + const_candidates (as ol_incremental "new").
+# Times in comments: previous seq_prove (yices, k=2, --chunk 16 --model), from ol_incremental/results.csv
+# (measured with 4 jobs in parallel) and corescore_scaling/README.md.
+ol_arb_rr     orfs_W100_T300   asserts=new   #   3s PASS
+ol_arb_prio   W16_L411_T60     asserts=new   #  49s PASS
+ol_arb_wrr    G128_W4_T30      asserts=new   #  29s PASS
+ol_fifo_sync  D4_W1589_T30     asserts=new   # 103s PASS
+ol_arb_rr     W512_T300        asserts=new   # 151s PASS
+ol_dyn_sft    W1152_M4_T30     asserts=new   # 105s PASS
+ol_dyn_sft    W2048_M4_T30     asserts=new   # TIMEOUT 300s
+ol_ram_sdp    D4_W3236_T30     asserts=new   # TIMEOUT 300s
+ol_pl_stage   W16_S480_T30     asserts=new   # 283s PASS
+corescore     C2_T900          asserts=new   # 126s PASS (ia_const)
+xorgrid       I16_O16_C16_W10_H10_F8_N6_D4_S0_T600   # run's own asserts
+xorgrid       I16_O16_C16_W16_H16_F8_N6_D4_S0_T600

@@ -1,0 +1,5 @@
+# Long runs (60 min): how long does the plain miter really need where it found no proof in 15 min?
+# seq_prove (hard set, 900s): xorgrid W24 61s, corescore C2 103s; fft64 not tried yet.
+xorgrid    I16_O16_C16_W24_H24_F8_N6_D4_S0_T600
+corescore  C2_T900   asserts=new
+fft64      W8_T300   asserts=new

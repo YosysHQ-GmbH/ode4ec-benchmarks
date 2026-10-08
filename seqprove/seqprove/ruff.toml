@@ -1,0 +1,2 @@
+# vendor/ is a copy of yosys' smtbmc_incremental.py, kept as upstream wrote it: not linted
+extend-exclude = ["vendor"]

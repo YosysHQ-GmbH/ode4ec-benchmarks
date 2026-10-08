@@ -1,0 +1,8 @@
+# A/B cases with asserts of >= 64 bits (where --wide-bits 64 routing changes anything)
+ol_arb_rr     orfs_W100_T300   asserts=new
+ol_arb_wrr    G128_W4_T30      asserts=new
+ol_fifo_sync  D4_W1589_T30     asserts=new
+ol_arb_rr     W512_T300        asserts=new
+ol_dyn_sft    W1152_M4_T30     asserts=new
+ol_dyn_sft    W2048_M4_T30     asserts=new
+ol_ram_sdp    D4_W3236_T30     asserts=new
