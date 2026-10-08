@@ -1,0 +1,3 @@
+variant,engine,result,secs
+ia,aiger-rIC3,TIMEOUT,901.8
+ia,btor-rIC3,TIMEOUT,901.5

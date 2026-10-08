@@ -1,0 +1,6 @@
+variant,engine,result,secs
+ia,btor-btormc,TIMEOUT,901.6
+ia,smtbmc-bitwuzla,TIMEOUT,901.6
+ia,aiger-suprove,TIMEOUT,901.8
+ia,abc-pdr,TIMEOUT,901.9
+ia,smtbmc-z3,TIMEOUT,902.1

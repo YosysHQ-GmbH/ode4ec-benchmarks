@@ -1,0 +1,3 @@
+variant,engine,result,secs
+mi,btor-rIC3,PASS,106.5
+mi,aiger-rIC3,TIMEOUT,901.9
