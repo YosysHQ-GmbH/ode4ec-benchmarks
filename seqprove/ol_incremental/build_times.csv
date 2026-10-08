@@ -1,0 +1,13 @@
+bench,run,build_secs,peak_rss_mb
+ol_fifo_sync,D4_W1589_T30,11,363
+ol_fifo_sync,D4_W1590_T30,11,362
+ol_fifo_sync,D4_W2048_T30,16,462
+ol_pl_stage,W16_S479_T30,85,1125
+ol_pl_stage,W16_S480_T30,85,1121
+ol_pl_stage,W16_S512_T30,98,1193
+ol_ram_sdp,D4_W3236_T30,32,646
+ol_ram_sdp,D4_W3237_T30,32,656
+ol_ram_sdp,D4_W4096_T30,48,842
+ol_ram_sp,D4_W3135_T30,36,756
+ol_ram_sp,D4_W3136_T30,36,770
+ol_ram_sp,D4_W4096_T30,56,928
