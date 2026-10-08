@@ -1,0 +1,14 @@
+W,engine,result,secs
+4,aiger-rIC3,PASS,1.6
+6,aiger-rIC3,PASS,3.1
+8,aiger-rIC3,PASS,7.0
+10,aiger-rIC3,PASS,14.9
+11,aiger-rIC3,PASS,28.8
+12,aiger-rIC3,PASS,53.6
+16,aiger-rIC3,PASS,106.9
+18,aiger-rIC3,PASS,152.8
+19,aiger-rIC3,PASS,210.7
+20,aiger-rIC3,PASS,257.9
+22,aiger-rIC3,PASS,262.2
+24,aiger-rIC3,PASS,219.3
+32,aiger-rIC3,PASS,589.4

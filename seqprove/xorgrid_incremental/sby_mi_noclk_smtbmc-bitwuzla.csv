@@ -1,0 +1,3 @@
+W,engine,result,secs
+4,smtbmc-bitwuzla,PASS,146.7
+6,smtbmc-bitwuzla,TIMEOUT,601.3

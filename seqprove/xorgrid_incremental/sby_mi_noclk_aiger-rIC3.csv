@@ -1,0 +1,3 @@
+W,engine,result,secs
+4,aiger-rIC3,PASS,68.6
+6,aiger-rIC3,TIMEOUT,601.7

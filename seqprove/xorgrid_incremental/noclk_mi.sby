@@ -1,0 +1,122 @@
+[tasks]
+abc-pdr
+# abc-sim3
+# abc-bmc3
+
+aiger-suprove
+# aiger-avy
+aiger-rIC3
+# aiger-bmc
+
+# smtbmc-yices
+# smtbmc-bootlector
+smtbmc-bitwuzla
+smtbmc-z3
+# smtbmc-mathsat
+# smtbmc-cvc4
+# smtbmc-cvc5
+
+btor-btormc
+# btor-pono
+btor-rIC3
+
+# itp
+
+[options]
+depth 20
+
+# itp: mode prove
+
+# smtbmc-yices: mode bmc
+# smtbmc-yices: timeout 600
+
+# smtbmc-bootlector: mode bmc
+# smtbmc-bootlector: timeout 600
+
+smtbmc-bitwuzla: mode bmc
+smtbmc-bitwuzla: timeout 600
+
+smtbmc-z3: mode bmc
+smtbmc-z3: timeout 600
+
+# smtbmc-mathsat: mode bmc
+# smtbmc-mathsat: timeout 600
+
+# smtbmc-cvc4: mode bmc
+# smtbmc-cvc4: timeout 600
+
+# smtbmc-cvc5: mode bmc
+# smtbmc-cvc5: timeout 600
+
+btor-btormc: mode bmc
+btor-btormc: timeout 600
+# btor-pono: mode bmc
+# btor-pono: timeout 600
+btor-rIC3: mode bmc
+btor-rIC3: timeout 600
+
+abc-pdr: mode prove
+abc-pdr: timeout 600
+# abc-sim3: mode bmc
+# abc-sim3: timeout 600
+# abc-bmc3: mode bmc
+# abc-bmc3: timeout 600
+
+aiger-suprove: mode prove
+aiger-suprove: timeout 600
+# aiger-avy: mode prove
+# aiger-avy: timeout 600
+aiger-rIC3: mode prove
+aiger-rIC3: timeout 600
+# aiger-bmc: mode bmc
+# aiger-bmc: timeout 600
+
+[engines]
+# itp: itp 20 0
+
+btor-btormc: btor btormc
+# btor-pono: btor pono
+btor-rIC3: btor rIC3
+
+# smtbmc-yices: smtbmc yices
+# smtbmc-bootlector: smtbmc bootlector
+smtbmc-bitwuzla: smtbmc bitwuzla
+smtbmc-z3: smtbmc z3
+# smtbmc-mathsat: smtbmc mathsat
+# smtbmc-cvc4: smtbmc cvc4
+# smtbmc-cvc5: smtbmc cvc5
+
+abc-pdr: abc pdr
+# abc-sim3: abc sim3
+# abc-bmc3: abc bmc3
+
+aiger-suprove: aiger suprove
+# aiger-avy: aiger avy
+aiger-rIC3: aiger rIC3
+# aiger-bmc: aiger aigbmc
+
+
+[script]
+# Gold
+read_rtlil gold.il
+
+# Gate
+read_liberty -ignore_miss_func sky130/sky130_fd_sc_hd__tt_025C_1v80.lib
+read_rtlil gate.il
+
+# Miter
+plugin -i slang
+read_slang --top miter miter.v -G I=16 -G O=16 -G C=16
+hierarchy -top miter
+flatten
+
+async2sync
+
+setundef -zero
+setundef -undriven -init -zero
+
+[files]
+sky130
+miter.v
+gold.il
+gate.il

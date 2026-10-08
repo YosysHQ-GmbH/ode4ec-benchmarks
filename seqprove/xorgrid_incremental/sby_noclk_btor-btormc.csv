@@ -1,0 +1,8 @@
+W,engine,result,secs
+4,btor-btormc,PASS,5.0
+6,btor-btormc,PASS,30.0
+8,btor-btormc,PASS,122.3
+10,btor-btormc,PASS,339.1
+11,btor-btormc,PASS,506.9
+12,btor-btormc,PASS,381.0
+16,btor-btormc,TIMEOUT,601.8

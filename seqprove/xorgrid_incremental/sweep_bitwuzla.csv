@@ -1,0 +1,9 @@
+W,solver,k,asserts,result,secs
+4,bitwuzla,2,97,PROVEN 97/97,1.7
+6,bitwuzla,2,217,PROVEN 217/217,7.3
+8,bitwuzla,2,385,PROVEN 385/385,25.9
+10,bitwuzla,2,601,PROVEN 601/601,74.5
+11,bitwuzla,2,727,PROVEN 727/727,107.6
+12,bitwuzla,2,865,PROVEN 865/865,162.1
+16,bitwuzla,2,1537,PROVEN 1537/1537,547.8
+18,bitwuzla,2,1945,TIMEOUT,601.0

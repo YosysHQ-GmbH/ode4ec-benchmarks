@@ -1,0 +1,2 @@
+W,solver,k,asserts,result,secs
+4,cvc5,2,97,TIMEOUT,600.0

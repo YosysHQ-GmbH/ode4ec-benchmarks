@@ -1,0 +1,9 @@
+W,engine,result,secs
+4,aiger-suprove,PASS,1.7
+6,aiger-suprove,PASS,3.4
+8,aiger-suprove,PASS,7.2
+10,aiger-suprove,PASS,9.3
+11,aiger-suprove,PASS,90.3
+12,aiger-suprove,PASS,104.0
+16,aiger-suprove,PASS,124.2
+18,aiger-suprove,TIMEOUT,602.3

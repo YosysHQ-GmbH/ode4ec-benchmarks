@@ -1,0 +1,8 @@
+W,engine,result,secs
+4,btor-rIC3,PASS,6.0
+6,btor-rIC3,PASS,26.4
+8,btor-rIC3,PASS,116.4
+10,btor-rIC3,PASS,477.9
+11,btor-rIC3,PASS,423.4
+12,btor-rIC3,PASS,326.4
+16,btor-rIC3,TIMEOUT,601.9

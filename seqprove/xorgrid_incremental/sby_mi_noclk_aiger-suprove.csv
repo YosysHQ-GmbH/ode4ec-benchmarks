@@ -1,0 +1,9 @@
+W,engine,result,secs
+4,aiger-suprove,PASS,2.5
+6,aiger-suprove,PASS,6.3
+8,aiger-suprove,PASS,12.9
+10,aiger-suprove,PASS,18.2
+11,aiger-suprove,PASS,22.0
+12,aiger-suprove,PASS,24.6
+16,aiger-suprove,PASS,50.2
+18,aiger-suprove,PASS,65.9

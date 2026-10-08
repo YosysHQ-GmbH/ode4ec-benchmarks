@@ -1,0 +1,14 @@
+W,solver,k,asserts,result,secs
+4,boolector,2,97,PROVEN 97/97,0.8
+6,boolector,2,217,PROVEN 217/217,1.9
+8,boolector,2,385,PROVEN 385/385,4.4
+10,boolector,2,601,PROVEN 601/601,9.8
+11,boolector,2,727,PROVEN 727/727,13.7
+12,boolector,2,865,PROVEN 865/865,17.4
+16,boolector,2,1537,PROVEN 1537/1537,47.5
+18,boolector,2,1945,PROVEN 1945/1945,68.6
+19,boolector,2,2167,PROVEN 2167/2167,86.5
+20,boolector,2,2401,PROVEN 2401/2401,106.9
+22,boolector,2,2905,PROVEN 2905/2905,140.9
+24,boolector,2,3457,PROVEN 3457/3457,205.0
+32,boolector,2,6145,TIMEOUT,603.1
