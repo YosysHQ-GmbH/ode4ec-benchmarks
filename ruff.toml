@@ -1,0 +1,3 @@
+# vendored third-party sources (the cva6 submodule) are not ours to lint
+extend-exclude = ["bench/designs/*/src"]
+target-version = "py312"  # f-strings reuse the outer quote

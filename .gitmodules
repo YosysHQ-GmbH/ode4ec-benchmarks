@@ -1,0 +1,3 @@
+[submodule "bench/designs/cva6/src/cva6"]
+	path = bench/designs/cva6/src/cva6
+	url = https://github.com/openhwgroup/cva6
