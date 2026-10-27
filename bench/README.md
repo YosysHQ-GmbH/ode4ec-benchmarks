@@ -9,7 +9,6 @@ python3 bench/run.py ol_arb_rr --ladders                        # the design's l
 python3 bench/run.py ol_fifo_sync --point Depth_g=4,Width_g=8 --flavors yosys   # one point, one flavor
 python3 bench/run.py ol_arb_rr --tools a=/opt/suiteA/bin --tools b=/opt/suiteB/bin   # compare two tool versions
 python3 bench/kpi.py table                                      # recompute the scores (run.py does this at the end)
-python3 bench/tests.py                                          # self-tests, a few minutes
 ```
 
 The cva6 sources are a submodule. Only the parts its file list needs have to be checked out:
@@ -30,8 +29,6 @@ git -C bench/designs/cva6/src/cva6 submodule update --init --recursive core/cvfp
 | `kpi.py` | the score: `s` per row in results.csv, and the summary in `kpi.csv` |
 | `run.py` | runs designs × flavors × points × toolchains × checks, results go to `results/<experiment>/results.csv` |
 
-`build/` and `work/` (the tools' work dirs) are not in git. A design's name is its path under `designs/`. Designs
-can be nested, as in `group/variant`, and the first part of the name is the design's group in the score.
 
 ## design.toml
 
@@ -56,11 +53,6 @@ can be nested, as in `group/variant`, and the first part of the name is the desi
 
 The loader refuses unknown keys, an `exclude` or `rtl_init` without a real `why`, a `require` with other syntax or
 one that removes every point, and `[compare] settle` and `valid_guard`, which are not implemented yet.
-
-A point that cannot be built gets a `build` row and is not scored. It is UNSUPPORTED if the gold netlist has flops
-on more than one clock net (separate clock inputs, or a gated or divided clock) or latches; asynchronous resets are
-supported. It is an ERROR if a build step fails, or if the gold or gate netlist has conflicting drivers, which is a
-defect of the benchmark.
 
 ## Flavors
 
