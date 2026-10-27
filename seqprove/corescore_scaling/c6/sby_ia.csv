@@ -1,3 +1,0 @@
-variant,engine,result,secs
-ia,aiger-suprove,ERROR,99.8
-ia,abc-pdr,ERROR,100.1
