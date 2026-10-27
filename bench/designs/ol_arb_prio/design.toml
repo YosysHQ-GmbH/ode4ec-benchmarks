@@ -1,0 +1,27 @@
+# open-logic olo_base_arb_prio. Sources: designs/_lib/open-logic.
+top = "olo_base_arb_prio"
+exercises = ["VHDL (ghdl)", "priority arbiter", "parameterized width and latency", "sync reset"]
+
+[source]
+frontend = "ghdl"
+args = ["--std=08", "-frelaxed"]
+files = [
+  "../_lib/open-logic/olo_base_pkg_array.vhd", "../_lib/open-logic/olo_base_pkg_attribute.vhd",
+  "../_lib/open-logic/olo_base_pkg_math.vhd", "../_lib/open-logic/olo_base_pkg_logic.vhd",
+  "../_lib/open-logic/olo_base_pkg_string.vhd", "../_lib/open-logic/olo_base_cc_reset.vhd",
+  "../_lib/open-logic/olo_base_cc_bits.vhd", "../_lib/open-logic/olo_base_ram_sdp.vhd",
+  "../_lib/open-logic/olo_base_arb_prio.vhd",
+]
+
+[params.Width_g]
+values = [8, 16, 32, 64, 128]
+[params.Latency_g]
+values = [0, 1, 2, 4]
+
+[[clocks]]
+name = "Clk"
+
+[[resets]]
+name = "Rst"
+clock = "Clk"
+active = 1

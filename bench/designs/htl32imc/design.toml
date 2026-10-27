@@ -1,0 +1,23 @@
+top = "htl32rv"
+exercises = ["VHDL (ghdl)", "RISC-V core", "sync reset"]
+
+[source]
+frontend = "ghdl"
+args = ["--std=08", "--work=riscv"]
+files = [
+  "src/rv32pack.vhd", "src/biu_ctrl_rtl.vhd", "src/syncfifo.vhd", "src/biu_struct.vhd",
+  "src/rv32dec.vhd", "src/rv32sdiv.vhd", "src/rv32proc.vhd", "src/rv32reg.vhd",
+  "src/htl32rv.vhd",
+]
+
+[[clocks]]
+name = "clk"
+
+[[resets]]
+name = "sreset"
+clock = "clk"
+active = 1
+
+[flows.orfs]
+# ORFS stops on memories over 4096 bits by default; map them to flip-flops instead
+config = ["export SYNTH_MEMORY_MAX_BITS = 32768"]

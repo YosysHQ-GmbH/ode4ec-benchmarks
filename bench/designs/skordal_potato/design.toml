@@ -1,0 +1,27 @@
+# UNSUPPORTED: a second clock net, processor.csr_unit.time_clk.
+top = "pp_potato"
+exercises = ["VHDL (ghdl)", "RISC-V core", "sync reset"]
+
+[source]
+frontend = "ghdl"
+args = ["--std=08"]
+files = [
+  "src/pp_alu.vhd", "src/pp_alu_control_unit.vhd", "src/pp_alu_mux.vhd", "src/pp_comparator.vhd",
+  "src/pp_constants.vhd", "src/pp_control_unit.vhd", "src/pp_core.vhd", "src/pp_counter.vhd",
+  "src/pp_csr.vhd", "src/pp_csr_alu.vhd", "src/pp_csr_unit.vhd", "src/pp_decode.vhd",
+  "src/pp_execute.vhd", "src/pp_fetch.vhd", "src/pp_icache.vhd", "src/pp_imm_decoder.vhd",
+  "src/pp_memory.vhd", "src/pp_potato.vhd", "src/pp_register_file.vhd", "src/pp_types.vhd",
+  "src/pp_utilities.vhd", "src/pp_wb_adapter.vhd", "src/pp_wb_arbiter.vhd", "src/pp_writeback.vhd",
+]
+
+[[clocks]]
+name = "clk"
+
+[[resets]]
+name = "reset"
+clock = "clk"
+active = 1
+
+[flows.orfs]
+# ORFS stops on memories over 4096 bits by default; map them to flip-flops instead
+config = ["export SYNTH_MEMORY_MAX_BITS = 32768"]

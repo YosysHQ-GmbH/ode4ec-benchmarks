@@ -1,0 +1,32 @@
+# r22sdf 64-point FFT (the core of yosys-perf's fft64). Twiddle64.v's constants are 16 bit at every WIDTH:
+# other widths are still a valid equivalence pair, just not a numerically correct FFT.
+top = "FFT"
+exercises = ["Verilog (slang)", "pipelined FFT", "multipliers", "async reset", "registers without reset"]
+
+[source]
+frontend = "slang"
+files = [
+  "src/FFT64.v", "src/SdfUnit.v", "src/Butterfly.v", "src/DelayBuffer.v", "src/Multiply.v", "src/Twiddle64.v",
+]
+
+[params.WIDTH]
+values = [16]
+
+[[clocks]]
+name = "clock"
+
+[[resets]]
+name = "reset"
+clock = "clock"
+active = 1
+
+[[ladders]]
+name = "Width"
+timeout = 600
+points = [
+  { WIDTH = 8 },
+  { WIDTH = 12 },
+  { WIDTH = 16 },
+  { WIDTH = 24 },
+  { WIDTH = 32 },
+]

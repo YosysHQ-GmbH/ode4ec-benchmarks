@@ -1,0 +1,26 @@
+# open-logic olo_base_ram_sdp. Sources: designs/_lib/open-logic.
+# No reset port: compared from step 0.
+top = "olo_base_ram_sdp"
+exercises = ["VHDL (ghdl)", "simple dual-port RAM", "no reset", "memory"]
+
+[source]
+frontend = "ghdl"
+args = ["--std=08", "-frelaxed"]
+files = [
+  "../_lib/open-logic/olo_base_pkg_array.vhd", "../_lib/open-logic/olo_base_pkg_attribute.vhd",
+  "../_lib/open-logic/olo_base_pkg_math.vhd", "../_lib/open-logic/olo_base_pkg_logic.vhd",
+  "../_lib/open-logic/olo_base_pkg_string.vhd", "../_lib/open-logic/olo_base_cc_reset.vhd",
+  "../_lib/open-logic/olo_base_cc_bits.vhd", "../_lib/open-logic/olo_base_ram_sdp.vhd",
+]
+
+[params.Width_g]
+values = [8, 16, 32, 64]
+[params.Depth_g]
+values = [4, 16, 32, 64, 128]
+
+[[clocks]]
+name = "Clk"
+
+[flows.orfs]
+# ORFS stops on memories over 4096 bits by default; map them to flip-flops instead
+config = ["export SYNTH_MEMORY_MAX_BITS = 32768"]

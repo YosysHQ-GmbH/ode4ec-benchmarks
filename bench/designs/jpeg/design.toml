@@ -1,0 +1,30 @@
+# JPEG encoder.
+top = "jpeg_encoder"
+exercises = ["Verilog (slang)", "JPEG encoder", "async active-low reset", "large design"]
+
+[source]
+frontend = "slang"
+args = ["--ignore-timing", "-I", "{design}/src/include"]
+files = [
+  "src/jpeg_encoder.v", "src/dct.v", "src/dct_mac.v", "src/dctu.v",
+  "src/dctub.v", "src/div_su.v", "src/div_uu.v", "src/fdct.v",
+  "src/jpeg_qnr.v", "src/jpeg_rle.v", "src/jpeg_rle1.v", "src/jpeg_rzs.v",
+  "src/zigzag.v",
+]
+
+[[clocks]]
+name = "clk"
+
+[[resets]]
+name = "rst"
+clock = "clk"
+active = 0
+
+[limits]
+# the two largest designs (cva6, jpeg) get 1800 s per check
+timeout = 1800
+build_timeout = 7200
+
+[flows.orfs]
+# ORFS stops on memories over 4096 bits by default; map them to flip-flops instead
+config = ["export SYNTH_MEMORY_MAX_BITS = 32768"]

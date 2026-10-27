@@ -1,0 +1,18 @@
+# Build ERROR: conflicting drivers on core.l2b.op, a defect of the design.
+top = "chacha"
+exercises = ["Verilog (slang)", "crypto core (secworks)", "async active-low reset"]
+
+[source]
+frontend = "slang"
+args = ["-keep-hierarchy"]
+files = [
+  "src/chacha.v", "src/chacha_core.v", "src/chacha_qr.v",
+]
+
+[[clocks]]
+name = "clk"
+
+[[resets]]
+name = "reset_n"
+clock = "clk"
+active = 0

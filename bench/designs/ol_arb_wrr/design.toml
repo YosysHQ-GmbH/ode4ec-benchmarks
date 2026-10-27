@@ -1,0 +1,62 @@
+# open-logic olo_base_arb_wrr. Sources: designs/_lib/open-logic.
+top = "olo_base_arb_wrr"
+exercises = ["VHDL (ghdl)", "weighted round-robin arbiter", "three parameters", "sync reset"]
+
+[source]
+frontend = "ghdl"
+args = ["--std=08", "-frelaxed"]
+files = [
+  "../_lib/open-logic/olo_base_pkg_array.vhd", "../_lib/open-logic/olo_base_pkg_attribute.vhd",
+  "../_lib/open-logic/olo_base_pkg_math.vhd", "../_lib/open-logic/olo_base_pkg_logic.vhd",
+  "../_lib/open-logic/olo_base_pkg_string.vhd", "../_lib/open-logic/olo_base_cc_reset.vhd",
+  "../_lib/open-logic/olo_base_cc_bits.vhd", "../_lib/open-logic/olo_base_ram_sdp.vhd",
+  "../_lib/open-logic/olo_base_arb_prio.vhd", "../_lib/open-logic/olo_base_arb_rr.vhd",
+  "../_lib/open-logic/olo_base_arb_wrr.vhd",
+]
+
+[params.GrantWidth_g]
+values = [8, 16, 32, 64]
+[params.WeightWidth_g]
+values = [4, 8, 16, 32]
+[params.Latency_g]
+values = [0, 1]
+
+[[clocks]]
+name = "Clk"
+
+[[resets]]
+name = "Rst"
+clock = "Clk"
+active = 1
+
+[[ladders]]
+name = "Grant"
+timeout = 30
+points = [
+  { GrantWidth_g = 8, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 16, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 32, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 64, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 96, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 128, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 160, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 192, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 224, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 256, WeightWidth_g = 4, Latency_g = 1 },
+]
+
+[[ladders]]
+name = "WeightWidth"
+timeout = 30
+points = [
+  { GrantWidth_g = 8, WeightWidth_g = 4, Latency_g = 1 },
+  { GrantWidth_g = 8, WeightWidth_g = 8, Latency_g = 1 },
+  { GrantWidth_g = 8, WeightWidth_g = 16, Latency_g = 1 },
+  { GrantWidth_g = 8, WeightWidth_g = 32, Latency_g = 1 },
+  { GrantWidth_g = 8, WeightWidth_g = 48, Latency_g = 1 },
+  { GrantWidth_g = 8, WeightWidth_g = 64, Latency_g = 1 },
+  { GrantWidth_g = 8, WeightWidth_g = 80, Latency_g = 1 },
+  { GrantWidth_g = 8, WeightWidth_g = 96, Latency_g = 1 },
+  { GrantWidth_g = 8, WeightWidth_g = 112, Latency_g = 1 },
+  { GrantWidth_g = 8, WeightWidth_g = 128, Latency_g = 1 },
+]

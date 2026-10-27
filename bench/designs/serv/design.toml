@@ -1,0 +1,24 @@
+top = "serv_top"
+exercises = ["Verilog (slang)", "bit-serial RISC-V core", "sync reset"]
+
+[source]
+frontend = "slang"
+files = [
+  "src/serv_aligner.v", "src/serv_alu.v", "src/serv_bufreg.v", "src/serv_bufreg2.v",
+  "src/serv_compdec.v", "src/serv_csr.v", "src/serv_ctrl.v", "src/serv_debug.v",
+  "src/serv_decode.v", "src/serv_immdec.v", "src/serv_mem_if.v", "src/serv_rf_if.v",
+  "src/serv_rf_ram.v", "src/serv_rf_ram_if.v", "src/serv_rf_top.v", "src/serv_state.v",
+  "src/serv_synth_wrapper.v", "src/serv_top.v",
+]
+
+[[clocks]]
+name = "clk"
+
+[[resets]]
+name = "i_rst"
+clock = "clk"
+active = 1
+
+[flows.orfs]
+# ORFS stops on memories over 4096 bits by default; map them to flip-flops instead
+config = ["export SYNTH_MEMORY_MAX_BITS = 32768"]

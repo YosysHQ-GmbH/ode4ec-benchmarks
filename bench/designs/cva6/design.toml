@@ -1,0 +1,29 @@
+# CVA6 RISC-V core, config cv64a6_imafdc_sv39. src/cva6: git submodule (README). Flist_formal.cva6 is
+# core/Flist.cva6 without the cvxif_example coprocessor.
+top = "cva6"
+exercises = ["SystemVerilog (slang)", "packed structs", "memories", "async active-low reset", "large design"]
+
+[source]
+frontend = "slang"
+flist = "Flist_formal.cva6"
+
+[source.env]
+CVA6_REPO_DIR = "{design}/src/cva6"
+HPDCACHE_DIR = "{design}/src/cva6/core/cache_subsystem/hpdcache"
+TARGET_CFG = "cv64a6_imafdc_sv39"
+
+[[clocks]]
+name = "clk_i"
+
+[[resets]]
+name = "rst_ni"
+clock = "clk_i"
+active = 0
+
+[limits]
+timeout = 1800
+build_timeout = 3600
+
+[flows.orfs]
+# ORFS stops on memories over 4096 bits by default; map them to flip-flops instead
+config = ["export SYNTH_MEMORY_MAX_BITS = 32768"]

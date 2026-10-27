@@ -1,0 +1,21 @@
+# UNSUPPORTED: 68 latches (from a full_case case statement).
+top = "picorv32"
+exercises = ["Verilog (slang)", "RISC-V core", "latches (full_case)", "sync active-low reset"]
+
+[source]
+frontend = "slang"
+files = [
+  "src/picorv32.v",
+]
+
+[[clocks]]
+name = "clk"
+
+[[resets]]
+name = "resetn"
+clock = "clk"
+active = 0
+
+[flows.orfs]
+# ORFS stops on memories over 4096 bits by default; map them to flip-flops instead
+config = ["export SYNTH_MEMORY_MAX_BITS = 32768"]

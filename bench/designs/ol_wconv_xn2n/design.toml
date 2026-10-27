@@ -1,0 +1,30 @@
+# open-logic olo_base_wconv_xn2n. Sources: designs/_lib/open-logic.
+top = "olo_base_wconv_xn2n"
+exercises = ["VHDL (ghdl)", "width converter k*N to N", "sync reset"]
+
+[source]
+frontend = "ghdl"
+args = ["--std=08", "-frelaxed"]
+files = [
+  "../_lib/open-logic/olo_base_pkg_array.vhd", "../_lib/open-logic/olo_base_pkg_attribute.vhd",
+  "../_lib/open-logic/olo_base_pkg_math.vhd", "../_lib/open-logic/olo_base_pkg_logic.vhd",
+  "../_lib/open-logic/olo_base_pkg_string.vhd", "../_lib/open-logic/olo_base_cc_reset.vhd",
+  "../_lib/open-logic/olo_base_cc_bits.vhd", "../_lib/open-logic/olo_base_ram_sdp.vhd",
+  "../_lib/open-logic/olo_base_wconv_xn2n.vhd",
+]
+
+[params.InWidth_g]
+values = [8, 16, 32, 64, 128]
+[params.OutWidth_g]
+values = [8, 16, 32, 64]
+
+[points]
+require = "InWidth_g % OutWidth_g == 0"
+
+[[clocks]]
+name = "Clk"
+
+[[resets]]
+name = "Rst"
+clock = "Clk"
+active = 1
